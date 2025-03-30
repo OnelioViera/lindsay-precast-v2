@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { jsPDF as JSPDF } from "jspdf";
+import toast, { Toaster } from "react-hot-toast";
 
 interface FormData {
   id: string;
@@ -113,29 +114,39 @@ export default function FormsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate that at least one option is selected for each thickness
-    const hasWallThickness = Object.values(formData.wallThickness).some(
-      (value) => value
-    );
-    const hasBaseThickness = Object.values(formData.baseThickness).some(
-      (value) => value
-    );
-    const hasLidThickness = Object.values(formData.lidThickness).some(
-      (value) => value
-    );
-
-    if (!hasWallThickness || !hasBaseThickness || !hasLidThickness) {
-      alert("Please select at least one option for each thickness type");
+    // Validate form title
+    if (!formData.title.trim()) {
+      toast.error("Please enter a form title");
       return;
     }
 
-    // Validate number inputs
-    if (
-      !formData.formSize.width ||
-      !formData.formSize.length ||
-      !formData.maxPourHeight
-    ) {
-      alert("Please fill in all required number fields");
+    // Validate form size
+    if (!formData.formSize.width || !formData.formSize.length) {
+      toast.error("Please enter both width and length for form size");
+      return;
+    }
+
+    // Validate max pour height
+    if (!formData.maxPourHeight) {
+      toast.error("Please enter max pour height");
+      return;
+    }
+
+    // Validate wall thickness
+    if (!Object.values(formData.wallThickness).some((value) => value)) {
+      toast.error("Please select at least one wall thickness option");
+      return;
+    }
+
+    // Validate base thickness
+    if (!Object.values(formData.baseThickness).some((value) => value)) {
+      toast.error("Please select at least one base thickness option");
+      return;
+    }
+
+    // Validate lid thickness
+    if (!Object.values(formData.lidThickness).some((value) => value)) {
+      toast.error("Please select at least one lid thickness option");
       return;
     }
 
@@ -188,6 +199,7 @@ export default function FormsPage() {
     });
     setEditingFormId(null);
     setIsModalOpen(false);
+    toast.success("Form saved successfully!");
   };
 
   const deleteForm = (id: string) => {
@@ -315,6 +327,7 @@ export default function FormsPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
+      <Toaster position="top-right" />
       <main className="w-full max-w-5xl mx-auto px-4">
         <div className="flex flex-col items-center space-y-6 sm:space-y-8">
           {/* Back button */}
@@ -354,7 +367,7 @@ export default function FormsPage() {
                 <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
                   Saved Forms
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
