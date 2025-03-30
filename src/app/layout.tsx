@@ -10,10 +10,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "https://media.glassdoor.com/sqll/908541/lindsay-precast-squarelogo-1499172248023.png",
-        href: "https://media.glassdoor.com/sqll/908541/lindsay-precast-squarelogo-1499172248023.png",
+        url: "/lindsay-logo.png",
+        type: "image/png",
+        sizes: "32x32",
       },
     ],
+    shortcut: "/lindsay-logo.png",
   },
 };
 
@@ -24,6 +26,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/lindsay-logo.png" />
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   );
