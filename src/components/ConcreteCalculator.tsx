@@ -59,9 +59,9 @@ export default function ConcreteCalculator() {
   };
 
   const handleInputChange = (
-    dimension: "length" | "width" | "height",
+    dimension: keyof Omit<CalculatorInputs, "quantity">,
     value: number,
-    unit: "feet" | "inches" | "yards" | "meters" | "centimeters"
+    unit: CalculatorInputs[typeof dimension]["unit"]
   ) => {
     setInputs({
       ...inputs,
