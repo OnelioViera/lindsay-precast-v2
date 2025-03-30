@@ -14,14 +14,8 @@ export const metadata: Metadata = {
   title: "Lindsay Precast",
   description: "Lindsay Precast Information Portal",
   icons: {
-    icon: [
-      {
-        url: "/lindsay-logo.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    shortcut: "/lindsay-logo.svg",
-    apple: "/lindsay-logo.svg",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
   },
   manifest: "/manifest.json",
 };
@@ -33,20 +27,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" type="image/svg+xml" href="/lindsay-logo.svg" />
-        <link
-          rel="shortcut icon"
-          type="image/svg+xml"
-          href="/lindsay-logo.svg"
-        />
-        <link
-          rel="apple-touch-icon"
-          type="image/svg+xml"
-          href="/lindsay-logo.svg"
-        />
-        <meta name="theme-color" content="#ffffff" />
-      </head>
       <body className={inter.className}>{children}</body>
     </html>
   );
