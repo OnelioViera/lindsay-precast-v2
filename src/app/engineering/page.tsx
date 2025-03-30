@@ -12,15 +12,6 @@ interface PDFFile {
   date: string;
 }
 
-const SAMPLE_FILE: PDFFile = {
-  id: "1",
-  name: "Sample Engineering Document",
-  description:
-    "This is a sample engineering document for demonstration purposes.",
-  url: "/pdfs/sample.pdf",
-  date: "2024-03-20",
-};
-
 // Upload Modal Component
 function UploadModal({
   isOpen,
@@ -145,9 +136,6 @@ export default function EngineeringPage() {
     if (savedFiles) {
       const parsedFiles = JSON.parse(savedFiles);
       setPdfFiles(parsedFiles);
-    } else {
-      // Only set the sample file if there are no saved files
-      setPdfFiles([SAMPLE_FILE]);
     }
   }, []);
 
@@ -254,7 +242,14 @@ export default function EngineeringPage() {
       const loadingToast = toast.loading("Deleting file...");
 
       // Remove file from state
-      setPdfFiles((prev) => prev.filter((file) => file.id !== fileId));
+      setPdfFiles((prev) => {
+        const newFiles = prev.filter((file) => file.id !== fileId);
+        // If this was the last file, remove from localStorage
+        if (newFiles.length === 0) {
+          localStorage.removeItem("pdfFiles");
+        }
+        return newFiles;
+      });
 
       // Update toast
       toast.success("File deleted successfully!", {
