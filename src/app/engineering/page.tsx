@@ -31,6 +31,32 @@ function UploadModal({
   onClose: () => void;
   onUpload: (files: FileList | null) => Promise<void>;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    onUpload(e.dataTransfer.files);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -59,7 +85,15 @@ function UploadModal({
           <div className="flex flex-col items-center justify-center">
             <label
               htmlFor="dropzone-file"
-              className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700"
+              className={`flex flex-col items-center justify-center w-full h-64 border-2 ${
+                isDragging
+                  ? "border-blue-500 bg-blue-900/20"
+                  : "border-gray-600"
+              } border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors duration-200`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <svg
@@ -125,13 +159,29 @@ export default function EngineeringPage() {
   }, [pdfFiles]);
 
   const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      console.log("No files selected");
+      return;
+    }
+
+    console.log(
+      "Files selected:",
+      Array.from(files).map((f) => ({
+        name: f.name,
+        type: f.type,
+        size: f.size,
+      }))
+    );
 
     // Check if all files are PDFs
     const nonPDFFiles = Array.from(files).filter(
       (file) => file.type !== "application/pdf"
     );
     if (nonPDFFiles.length > 0) {
+      console.log(
+        "Non-PDF files detected:",
+        nonPDFFiles.map((f) => f.name)
+      );
       toast.error("Please upload only PDF files");
       return;
     }
@@ -144,6 +194,7 @@ export default function EngineeringPage() {
 
       // Upload each file
       const uploadPromises = Array.from(files).map(async (file) => {
+        console.log("Starting upload for file:", file.name);
         const formData = new FormData();
         formData.append("file", file);
 
@@ -153,10 +204,13 @@ export default function EngineeringPage() {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
+          const errorData = await response.json();
+          console.error("Upload failed:", errorData);
+          throw new Error(errorData.error || `Failed to upload ${file.name}`);
         }
 
         const data = await response.json();
+        console.log("Upload successful:", data);
         return {
           id: data.id,
           name: file.name,
@@ -167,6 +221,7 @@ export default function EngineeringPage() {
       });
 
       const uploadedFiles = await Promise.all(uploadPromises);
+      console.log("All files uploaded successfully:", uploadedFiles);
 
       // Add new files to state
       setPdfFiles((prev) => [...prev, ...uploadedFiles]);
@@ -185,7 +240,11 @@ export default function EngineeringPage() {
       setIsUploadModalOpen(false);
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload one or more files");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to upload one or more files"
+      );
     }
   };
 
