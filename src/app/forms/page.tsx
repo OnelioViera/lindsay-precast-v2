@@ -69,15 +69,30 @@ export default function FormsPage() {
 
   // Load saved forms from localStorage on component mount
   useEffect(() => {
-    const savedFormsData = localStorage.getItem("savedForms");
-    if (savedFormsData) {
-      setSavedForms(JSON.parse(savedFormsData));
+    try {
+      const savedFormsData = localStorage.getItem("savedForms");
+      if (savedFormsData) {
+        const parsedData = JSON.parse(savedFormsData);
+        if (Array.isArray(parsedData)) {
+          setSavedForms(parsedData);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading saved forms:", error);
     }
   }, []);
 
   // Save forms to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("savedForms", JSON.stringify(savedForms));
+    try {
+      if (savedForms.length > 0) {
+        localStorage.setItem("savedForms", JSON.stringify(savedForms));
+      } else {
+        localStorage.removeItem("savedForms");
+      }
+    } catch (error) {
+      console.error("Error saving forms:", error);
+    }
   }, [savedForms]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,11 +114,25 @@ export default function FormsPage() {
       return;
     }
 
+    // Validate number inputs
+    if (
+      !formData.formSize.width ||
+      !formData.formSize.length ||
+      !formData.maxPourHeight
+    ) {
+      alert("Please fill in all required number fields");
+      return;
+    }
+
     const newForm: FormData = {
       id: Date.now().toString(),
       ...formData,
     };
-    setSavedForms([...savedForms, newForm]);
+
+    // Update state with the new form
+    setSavedForms((prevForms) => [...prevForms, newForm]);
+
+    // Reset form data
     setFormData({
       title: "",
       formSize: {
@@ -133,11 +162,12 @@ export default function FormsPage() {
       dynamicBlocks: false,
       notes: "",
     });
+
     setIsModalOpen(false);
   };
 
   const deleteForm = (id: string) => {
-    setSavedForms(savedForms.filter((form) => form.id !== id));
+    setSavedForms((prevForms) => prevForms.filter((form) => form.id !== id));
   };
 
   return (
@@ -185,98 +215,109 @@ export default function FormsPage() {
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
-                      className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                      className="bg-gray-50 rounded-xl p-4 shadow-lg border border-gray-200 transition-all duration-300 hover:shadow-xl relative"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                      <div className="flex justify-between items-center mb-3 bg-blue-600 -mx-4 -mt-4 px-4 py-2 rounded-t-xl">
+                        <h3 className="text-lg sm:text-xl font-semibold text-white">
                           {form.title}
                         </h3>
                         <button
                           onClick={() => deleteForm(form.id)}
-                          className="text-red-500 hover:text-red-600 transition-colors"
+                          className="text-white hover:text-red-200 transition-colors p-2 hover:bg-blue-700 rounded-full flex items-center justify-center w-8 h-8"
+                          aria-label="Delete form"
                         >
                           ✕
                         </button>
                       </div>
-                      <div className="space-y-2 sm:space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Form Size</p>
-                          <p className="text-gray-800">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Form Size
+                          </p>
+                          <p className="text-gray-900">
                             {form.formSize.width}" x {form.formSize.length}"
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Max Pour Height
+                          </p>
+                          <p className="text-gray-900">{form.maxPourHeight}"</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
                             Wall Thickness
                           </p>
-                          <p className="text-gray-800">
+                          <p className="text-gray-900">
                             {Object.entries(form.wallThickness)
                               .filter(([_, value]) => value)
                               .map(([key]) => `${key}"`)
                               .join(", ")}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
                             Base Thickness
                           </p>
-                          <p className="text-gray-800">
+                          <p className="text-gray-900">
                             {Object.entries(form.baseThickness)
                               .filter(([_, value]) => value)
                               .map(([key]) => `${key}"`)
                               .join(", ")}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Lid Thickness</p>
-                          <p className="text-gray-800">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Lid Thickness
+                          </p>
+                          <p className="text-gray-900">
                             {Object.entries(form.lidThickness)
                               .filter(([_, value]) => value)
                               .map(([key]) => `${key}"`)
                               .join(", ")}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
                             Anti-skid Base
                           </p>
-                          <p className="text-gray-800">
+                          <p className="text-gray-900">
                             {form.antiSkidBase ? "Yes" : "No"}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Anti-skid Lid</p>
-                          <p className="text-gray-800">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Anti-skid Lid
+                          </p>
+                          <p className="text-gray-900">
                             {form.antiSkidLid ? "Yes" : "No"}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Max Pour Height
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Engineered
                           </p>
-                          <p className="text-gray-800">{form.maxPourHeight}"</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Engineered</p>
-                          <p className="text-gray-800">
+                          <p className="text-gray-900">
                             {form.engineered ? "Yes" : "No"}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
                             Dynamic Blocks
                           </p>
-                          <p className="text-gray-800">
+                          <p className="text-gray-900">
                             {form.dynamicBlocks ? "Yes" : "No"}
                           </p>
                         </div>
-                        {form.notes && (
-                          <div>
-                            <p className="text-sm text-gray-500">Notes</p>
-                            <p className="text-gray-800">{form.notes}</p>
-                          </div>
-                        )}
                       </div>
+                      {form.notes && (
+                        <div className="mt-2 bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
+                            Notes
+                          </p>
+                          <p className="text-gray-900 text-sm">{form.notes}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -333,17 +374,17 @@ export default function FormsPage() {
                   <input
                     type="number"
                     id="width"
-                    value={formData.formSize.width}
+                    value={formData.formSize.width || ""}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
                         formSize: {
                           ...formData.formSize,
-                          width: Number(e.target.value),
+                          width: e.target.value ? Number(e.target.value) : 0,
                         },
                       })
                     }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
                   />
                 </div>
@@ -357,17 +398,17 @@ export default function FormsPage() {
                   <input
                     type="number"
                     id="length"
-                    value={formData.formSize.length}
+                    value={formData.formSize.length || ""}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
                         formSize: {
                           ...formData.formSize,
-                          length: Number(e.target.value),
+                          length: e.target.value ? Number(e.target.value) : 0,
                         },
                       })
                     }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
                   />
                 </div>
@@ -680,14 +721,16 @@ export default function FormsPage() {
                 <input
                   type="number"
                   id="maxPourHeight"
-                  value={formData.maxPourHeight}
+                  value={formData.maxPourHeight || ""}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      maxPourHeight: Number(e.target.value),
+                      maxPourHeight: e.target.value
+                        ? Number(e.target.value)
+                        : 0,
                     })
                   }
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   required
                 />
               </div>
