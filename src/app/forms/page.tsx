@@ -340,9 +340,14 @@ export default function FormsPage() {
           </Link>
 
           {/* Page title */}
-          <h1 className="text-4xl sm:text-6xl font-bold text-white text-center">
-            Forms Information
-          </h1>
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl sm:text-6xl font-bold text-white">
+              Lindsay Precast
+            </h1>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-300">
+              Forms Information
+            </h2>
+          </div>
 
           {/* Content placeholder */}
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
@@ -350,16 +355,6 @@ export default function FormsPage() {
               Welcome to the Forms Information page. This section will contain
               all the necessary forms and documentation for Lindsay Precast.
             </p>
-
-            {/* Create New Form Button */}
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 text-base sm:text-lg font-medium shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                Create New Form
-              </button>
-            </div>
 
             {/* Saved Forms Display */}
             {savedForms.length > 0 && (
@@ -548,6 +543,24 @@ export default function FormsPage() {
       {savedForms.length > 0 && (
         <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
           <div className="max-w-7xl mx-auto flex justify-center space-x-4">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Create New Form</span>
+            </button>
             <button
               onClick={() => {
                 const ws = XLSX.utils.json_to_sheet(
