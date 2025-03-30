@@ -1,19 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Unit, DimensionInput, BaseCalculatorInputs } from "@/types/calculator";
 
-type Unit = "feet" | "inches" | "yards" | "meters" | "centimeters";
-
-interface DimensionInput {
-  value: number;
-  unit: Unit;
-}
-
-interface CalculatorInputs {
+interface CalculatorInputs extends BaseCalculatorInputs {
   length: DimensionInput;
   width: DimensionInput;
   height: DimensionInput;
-  quantity: number;
 }
 
 export default function ConcreteCalculator() {

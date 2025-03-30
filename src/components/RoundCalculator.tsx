@@ -1,17 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Unit, DimensionInput, BaseCalculatorInputs } from "@/types/calculator";
 
-interface CalculatorInputs {
-  diameter: {
-    value: number;
-    unit: "meters" | "feet" | "inches";
-  };
-  height: {
-    value: number;
-    unit: "meters" | "feet" | "inches";
-  };
-  quantity: number;
+interface CalculatorInputs extends BaseCalculatorInputs {
+  diameter: DimensionInput;
+  height: DimensionInput;
 }
 
 export default function RoundCalculator() {
@@ -22,15 +16,16 @@ export default function RoundCalculator() {
   });
   const [showResults, setShowResults] = useState(false);
 
-  const convertToMeters = (
-    value: number,
-    unit: CalculatorInputs["diameter"]["unit"]
-  ) => {
+  const convertToMeters = (value: number, unit: Unit) => {
     switch (unit) {
       case "feet":
         return value * 0.3048;
       case "inches":
         return value * 0.0254;
+      case "yards":
+        return value * 0.9144;
+      case "centimeters":
+        return value / 100;
       default:
         return value;
     }
