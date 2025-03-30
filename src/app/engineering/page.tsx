@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import ConcreteCalculator from "@/components/ConcreteCalculator";
+import CalculatorModal from "@/components/CalculatorModal";
 
 interface PDFFile {
   id: string;
@@ -130,6 +130,9 @@ function UploadModal({
 export default function EngineeringPage() {
   const [pdfFiles, setPdfFiles] = useState<PDFFile[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isSquareCalculatorOpen, setIsSquareCalculatorOpen] = useState(false);
+  const [isRoundCalculatorOpen, setIsRoundCalculatorOpen] = useState(false);
+  const [isTubeCalculatorOpen, setIsTubeCalculatorOpen] = useState(false);
 
   // Load saved files from localStorage on component mount
   useEffect(() => {
@@ -277,13 +280,104 @@ export default function EngineeringPage() {
             </h2>
           </div>
 
-          {/* Concrete Calculator */}
-          <div className="w-full max-w-4xl">
-            <ConcreteCalculator />
+          {/* Calculator Sections */}
+          <div className="mt-12 bg-gray-800 rounded-xl p-6 shadow-lg">
+            <h2 className="text-3xl font-bold text-white text-center mb-8">
+              Concrete Calculators
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Square Calculator Section */}
+              <div className="flex flex-col space-y-4">
+                <h2 className="text-xl font-semibold text-center text-white">
+                  Slabs, Square Footings, or Walls
+                </h2>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setIsSquareCalculatorOpen(true)}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center justify-center space-x-2 w-full"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-center">
+                      Slabs, Square Footings, or Walls
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Round Calculator Section */}
+              <div className="flex flex-col space-y-4">
+                <h2 className="text-xl font-semibold text-center text-white">
+                  Holes, Columns, or Round Footings
+                </h2>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setIsRoundCalculatorOpen(true)}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center justify-center space-x-2 w-full"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-center">
+                      Holes, Columns, or Round Footings
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tube Calculator Section */}
+              <div className="flex flex-col space-y-4">
+                <h2 className="text-xl font-semibold text-center text-white">
+                  Circular Slab or Tube
+                </h2>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setIsTubeCalculatorOpen(true)}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center justify-center space-x-2 w-full"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-center">Circular Slab or Tube</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
+          {/* Horizontal Line */}
+          <div className="w-full border-t border-gray-700 my-16"></div>
+
           {/* PDF Storage Section */}
-          <div className="w-full max-w-7xl">
+          <div className="w-full max-w-7xl mt-16">
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-semibold text-white">
@@ -378,6 +472,23 @@ export default function EngineeringPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleFileUpload}
+      />
+
+      {/* Calculator Modals */}
+      <CalculatorModal
+        isOpen={isSquareCalculatorOpen}
+        onClose={() => setIsSquareCalculatorOpen(false)}
+        type="square"
+      />
+      <CalculatorModal
+        isOpen={isRoundCalculatorOpen}
+        onClose={() => setIsRoundCalculatorOpen(false)}
+        type="round"
+      />
+      <CalculatorModal
+        isOpen={isTubeCalculatorOpen}
+        onClose={() => setIsTubeCalculatorOpen(false)}
+        type="tube"
       />
     </div>
   );
