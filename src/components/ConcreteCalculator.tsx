@@ -57,6 +57,13 @@ export default function ConcreteCalculator() {
     });
   };
 
+  const handleQuantityChange = (value: number) => {
+    setInputs({
+      ...inputs,
+      quantity: value,
+    });
+  };
+
   const handleClear = () => {
     setInputs({
       length: { value: 0, unit: "inches" },
@@ -196,6 +203,23 @@ export default function ConcreteCalculator() {
                 <option value="centimeters">centimeters</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Quantity
+            </label>
+            <input
+              type="number"
+              value={inputs.quantity}
+              onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+              onFocus={(e) => {
+                if (e.target.value === "0") {
+                  e.target.value = "";
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
           </div>
 
           <div className="flex space-x-2">
