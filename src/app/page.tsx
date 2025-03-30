@@ -24,7 +24,7 @@ export default function HomePage() {
               {/* Hero text section */}
               <div className="text-center space-y-4 sm:space-y-6">
                 <p className="text-2xl sm:text-3xl text-gray-300 font-light max-w-2xl mx-auto">
-                  Forms and Symons Information
+                  Forms, Symons, and Engineering Information
                 </p>
               </div>
             </div>
