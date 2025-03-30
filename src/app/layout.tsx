@@ -10,16 +10,16 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/favicon.ico",
-        sizes: "any",
-      },
-      {
-        url: "/lindsay-logo.png",
-        type: "image/png",
-        sizes: "32x32",
+        url: "/lindsay-logo.svg",
+        type: "image/svg+xml",
       },
     ],
+    shortcut: "/lindsay-logo.svg",
+    apple: "/lindsay-logo.svg",
   },
+  manifest: "/manifest.json",
+  viewport: "width=device-width, initial-scale=1",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -30,13 +30,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/lindsay-logo.svg" />
         <link
-          rel="icon"
-          type="image/png"
-          href="/lindsay-logo.png"
-          sizes="32x32"
+          rel="shortcut icon"
+          type="image/svg+xml"
+          href="/lindsay-logo.svg"
         />
+        <link
+          rel="apple-touch-icon"
+          type="image/svg+xml"
+          href="/lindsay-logo.svg"
+        />
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
