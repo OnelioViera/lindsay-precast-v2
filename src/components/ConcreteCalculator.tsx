@@ -47,7 +47,7 @@ export default function ConcreteCalculator() {
   };
 
   const handleInputChange = (
-    dimension: "length" | "width" | "height",
+    dimension: keyof Pick<CalculatorInputs, "length" | "width" | "height">,
     value: number,
     unit: Unit
   ) => {
