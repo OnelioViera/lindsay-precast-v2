@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { jsPDF as JSPDF } from "jspdf";
@@ -221,45 +221,69 @@ export default function FormsPage() {
     setDeleteConfirmModal({ isOpen: false, formId: null });
   };
 
-  const exportToExcel = (form: FormData) => {
-    const data = [
-      ["Field", "Value"],
-      ["Form Title", form.title],
-      ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
-      ["Max Pour Height", `${form.maxPourHeight}"`],
-      [
-        "Wall Thickness",
-        Object.entries(form.wallThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
-          .join(", "),
-      ],
-      [
-        "Base Thickness",
-        Object.entries(form.baseThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
-          .join(", "),
-      ],
-      [
-        "Lid Thickness",
-        Object.entries(form.lidThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
-          .join(", "),
-      ],
-      ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
-      ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
-      ["Clam Shell", form.clamShell ? "Yes" : "No"],
-      ["Engineered", form.engineered ? "Yes" : "No"],
-      ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
-      ["Notes", form.notes || "N/A"],
-    ];
+  const exportToExcel = async (form: FormData) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Form Details");
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Form Details");
-    XLSX.writeFile(wb, `${form.title}_form.xlsx`);
+    // Add title row with styling
+    worksheet.addRow(["Form Details"]).font = { bold: true, size: 14 };
+    worksheet.mergeCells("A1:B1");
+
+    // Add data rows
+    worksheet.addRow(["Field", "Value"]);
+    worksheet.addRow(["Form Title", form.title]);
+    worksheet.addRow([
+      "Form Size",
+      `${form.formSize.width}" x ${form.formSize.length}"`,
+    ]);
+    worksheet.addRow(["Max Pour Height", `${form.maxPourHeight}"`]);
+    worksheet.addRow([
+      "Wall Thickness",
+      Object.entries(form.wallThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow([
+      "Base Thickness",
+      Object.entries(form.baseThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow([
+      "Lid Thickness",
+      Object.entries(form.lidThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow(["Anti-Skid Base", form.antiSkidBase ? "Yes" : "No"]);
+    worksheet.addRow(["Anti-Skid Lid", form.antiSkidLid ? "Yes" : "No"]);
+    worksheet.addRow(["Clam Shell", form.clamShell ? "Yes" : "No"]);
+    worksheet.addRow(["Engineered", form.engineered ? "Yes" : "No"]);
+    worksheet.addRow(["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"]);
+    worksheet.addRow(["Notes", form.notes || "N/A"]);
+
+    // Style the header row
+    worksheet.getRow(2).font = { bold: true };
+
+    // Auto-fit columns
+    worksheet.columns.forEach((column) => {
+      column.width = 20;
+    });
+
+    // Generate the Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${form.title.replace(/\s+/g, "_")}_form_details.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const exportToPDF = (form: FormData) => {
