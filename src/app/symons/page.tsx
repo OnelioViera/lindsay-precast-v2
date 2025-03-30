@@ -25,11 +25,7 @@ export default function SymonsPage() {
 
           {/* Content placeholder */}
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
-            <p className="text-base sm:text-lg">
-              Welcome to the Symons Information page. This section will contain
-              all the necessary Symons-related information and documentation for
-              Lindsay Precast.
-            </p>
+            {/* Content will be added here */}
           </div>
         </div>
       </main>
