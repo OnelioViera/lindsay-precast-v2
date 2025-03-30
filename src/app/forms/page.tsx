@@ -587,51 +587,67 @@ export default function FormsPage() {
           {savedForms.length > 0 && (
             <>
               <button
-                onClick={() => {
-                  const ws = XLSX.utils.json_to_sheet(
-                    savedForms.map((form) => ({
-                      "Form Title": form.title,
-                      "Form Size": `${form.formSize.width}" x ${form.formSize.length}"`,
-                      "Max Pour Height": `${form.maxPourHeight}"`,
-                      "Wall Thickness": Object.entries(form.wallThickness)
+                onClick={async () => {
+                  const workbook = new ExcelJS.Workbook();
+                  const worksheet = workbook.addWorksheet("Forms");
+
+                  worksheet.columns = [
+                    { header: "Form Title", key: "title" },
+                    { header: "Form Size", key: "size" },
+                    { header: "Wall Thickness", key: "wallThickness" },
+                    { header: "Base Thickness", key: "baseThickness" },
+                    { header: "Lid Thickness", key: "lidThickness" },
+                    { header: "Anti-Skid Base", key: "antiSkidBase" },
+                    { header: "Anti-Skid Lid", key: "antiSkidLid" },
+                    { header: "Clam Shell", key: "clamShell" },
+                    { header: "Max Pour Height", key: "maxPourHeight" },
+                    { header: "Engineered", key: "engineered" },
+                    { header: "Dynamic Blocks", key: "dynamicBlocks" },
+                    { header: "Notes", key: "notes" },
+                  ];
+
+                  savedForms.forEach((form) => {
+                    worksheet.addRow({
+                      title: form.title,
+                      size: `${form.formSize.width}" x ${form.formSize.length}"`,
+                      wallThickness: Object.entries(form.wallThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => `${key}"`)
                         .join(", "),
-                      "Base Thickness": Object.entries(form.baseThickness)
+                      baseThickness: Object.entries(form.baseThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => `${key}"`)
                         .join(", "),
-                      "Lid Thickness": Object.entries(form.lidThickness)
+                      lidThickness: Object.entries(form.lidThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => `${key}"`)
                         .join(", "),
-                      "Anti-skid Base": form.antiSkidBase ? "Yes" : "No",
-                      "Anti-skid Lid": form.antiSkidLid ? "Yes" : "No",
-                      "Clam Shell": form.clamShell ? "Yes" : "No",
-                      Engineered: form.engineered ? "Yes" : "No",
-                      "Dynamic Blocks": form.dynamicBlocks ? "Yes" : "No",
-                      Notes: form.notes || "",
-                    }))
-                  );
-                  const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, "Forms");
-                  XLSX.writeFile(wb, "all_forms.xlsx");
+                      antiSkidBase: form.antiSkidBase ? "Yes" : "No",
+                      antiSkidLid: form.antiSkidLid ? "Yes" : "No",
+                      clamShell: form.clamShell ? "Yes" : "No",
+                      maxPourHeight: form.maxPourHeight,
+                      engineered: form.engineered ? "Yes" : "No",
+                      dynamicBlocks: form.dynamicBlocks ? "Yes" : "No",
+                      notes: form.notes,
+                    });
+                  });
+
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "forms.xlsx";
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
                 }}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Export All as Excel</span>
+                Export All Forms
               </button>
               <button
                 onClick={() => {

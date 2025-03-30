@@ -64,12 +64,7 @@ export default function RoundCalculator() {
 
   const handleInputChange = (
     field: keyof CalculatorInputs,
-    value:
-      | number
-      | {
-          value: number;
-          unit: CalculatorInputs[keyof CalculatorInputs]["unit"];
-        }
+    value: number | { value: number; unit: Unit }
   ) => {
     setInputs({
       ...inputs,
