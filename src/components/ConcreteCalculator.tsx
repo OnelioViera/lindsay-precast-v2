@@ -7,6 +7,7 @@ interface CalculatorInputs extends BaseCalculatorInputs {
   length: DimensionInput;
   width: DimensionInput;
   height: DimensionInput;
+  quantity: number;
 }
 
 export default function ConcreteCalculator() {
