@@ -328,7 +328,7 @@ export default function FormsPage() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
       <Toaster position="top-right" />
-      <main className="w-full max-w-5xl mx-auto px-4">
+      <main className="w-full max-w-7xl mx-auto px-4">
         <div className="flex flex-col items-center space-y-6 sm:space-y-8">
           {/* Back button */}
           <Link
@@ -345,7 +345,7 @@ export default function FormsPage() {
           </h1>
 
           {/* Content placeholder */}
-          <div className="w-full max-w-3xl text-gray-300 space-y-4 sm:space-y-6">
+          <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
             <p className="text-base sm:text-lg">
               Welcome to the Forms Information page. This section will contain
               all the necessary forms and documentation for Lindsay Precast.
@@ -367,7 +367,7 @@ export default function FormsPage() {
                 <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
                   Saved Forms
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
