@@ -1,0 +1,14 @@
+{
+  "name": "Lindsay Precast",
+  "short_name": "Lindsay",
+  "icons": [
+    {
+      "src": "/lindsay-logo.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+} 

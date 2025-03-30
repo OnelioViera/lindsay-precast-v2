@@ -10,12 +10,15 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
+        url: "/favicon.ico",
+        sizes: "any",
+      },
+      {
         url: "/lindsay-logo.png",
         type: "image/png",
         sizes: "32x32",
       },
     ],
-    shortcut: "/lindsay-logo.png",
   },
 };
 
@@ -27,7 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/lindsay-logo.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link
+          rel="icon"
+          type="image/png"
+          href="/lindsay-logo.png"
+          sizes="32x32"
+        />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
