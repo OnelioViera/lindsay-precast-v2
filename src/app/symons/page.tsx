@@ -168,6 +168,34 @@ export default function SymonsPage() {
 
           {/* Content placeholder */}
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
+            <div className="flex justify-center mb-6">
+              <button
+                onClick={() => {
+                  setSymonData({
+                    title: "",
+                    description: "",
+                    links: [],
+                  });
+                  setEditingSymonId(null);
+                  setIsModalOpen(true);
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Create New Symons</span>
+              </button>
+            </div>
             {savedSymons.length > 0 && (
               <div className="w-full space-y-4 sm:space-y-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
@@ -238,115 +266,6 @@ export default function SymonsPage() {
           </div>
         </div>
       </main>
-
-      {/* Footer with Export Buttons */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex justify-center space-x-4">
-          <button
-            onClick={() => {
-              setSymonData({
-                title: "",
-                description: "",
-                links: [],
-              });
-              setEditingSymonId(null);
-              setIsModalOpen(true);
-            }}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span>Create New Symons</span>
-          </button>
-          {savedSymons.length > 0 && (
-            <>
-              <button
-                onClick={() => {
-                  const ws = XLSX.utils.json_to_sheet(
-                    savedSymons.map((symon) => ({
-                      Title: symon.title,
-                      Description: symon.description,
-                      Links: symon.links
-                        .map((link) => `${link.title}: ${link.url}`)
-                        .join(", "),
-                    }))
-                  );
-                  const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, "Symons");
-                  XLSX.writeFile(wb, "symons_info.xlsx");
-                }}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Export as Excel</span>
-              </button>
-              <button
-                onClick={() => {
-                  const doc = new jsPDF();
-                  doc.setFontSize(16);
-                  doc.text("Symons Information", 14, 15);
-                  autoTable(doc, {
-                    startY: 25,
-                    head: [["Title", "Description", "Links"]],
-                    body: savedSymons.map((symon) => [
-                      symon.title,
-                      symon.description,
-                      symon.links
-                        .map((link) => `${link.title}: ${link.url}`)
-                        .join(", "),
-                    ]),
-                    theme: "grid",
-                    headStyles: { fillColor: [59, 130, 246] },
-                    styles: { fontSize: 9 },
-                    columnStyles: {
-                      0: { cellWidth: 40 },
-                      1: { cellWidth: 80 },
-                      2: { cellWidth: 60 },
-                    },
-                  });
-                  doc.save("symons_info.pdf");
-                }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Export as PDF</span>
-              </button>
-            </>
-          )}
-        </div>
-      </footer>
 
       {/* Modal */}
       {isModalOpen && (
