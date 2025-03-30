@@ -328,7 +328,7 @@ export default function FormsPage() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
       <Toaster position="top-right" />
-      <main className="w-full max-w-7xl mx-auto px-4">
+      <main className="w-full max-w-7xl mx-auto px-4 pb-24">
         <div className="flex flex-col items-center space-y-6 sm:space-y-8">
           {/* Back button */}
           <Link
@@ -543,6 +543,142 @@ export default function FormsPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer with Export Buttons */}
+      {savedForms.length > 0 && (
+        <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
+          <div className="max-w-7xl mx-auto flex justify-center space-x-4">
+            <button
+              onClick={() => {
+                const ws = XLSX.utils.json_to_sheet(
+                  savedForms.map((form) => ({
+                    "Form Title": form.title,
+                    "Form Size": `${form.formSize.width}" x ${form.formSize.length}"`,
+                    "Max Pour Height": `${form.maxPourHeight}"`,
+                    "Wall Thickness": Object.entries(form.wallThickness)
+                      .filter(([_, value]) => value)
+                      .map(([key]) => `${key}"`)
+                      .join(", "),
+                    "Base Thickness": Object.entries(form.baseThickness)
+                      .filter(([_, value]) => value)
+                      .map(([key]) => `${key}"`)
+                      .join(", "),
+                    "Lid Thickness": Object.entries(form.lidThickness)
+                      .filter(([_, value]) => value)
+                      .map(([key]) => `${key}"`)
+                      .join(", "),
+                    "Anti-skid Base": form.antiSkidBase ? "Yes" : "No",
+                    "Anti-skid Lid": form.antiSkidLid ? "Yes" : "No",
+                    "Clam Shell": form.clamShell ? "Yes" : "No",
+                    Engineered: form.engineered ? "Yes" : "No",
+                    "Dynamic Blocks": form.dynamicBlocks ? "Yes" : "No",
+                    Notes: form.notes || "",
+                  }))
+                );
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Forms");
+                XLSX.writeFile(wb, "all_forms.xlsx");
+              }}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Export All as Excel</span>
+            </button>
+            <button
+              onClick={() => {
+                const doc = new jsPDF();
+                let currentY = 15;
+
+                // Add title for all forms
+                doc.setFontSize(16);
+                doc.text("All Forms", 14, currentY);
+                currentY += 15;
+
+                // Create a single table with all forms
+                const allData = savedForms.flatMap((form) =>
+                  [
+                    ["Form Title", form.title],
+                    [
+                      "Form Size",
+                      `${form.formSize.width}" x ${form.formSize.length}"`,
+                    ],
+                    ["Max Pour Height", `${form.maxPourHeight}"`],
+                    [
+                      "Wall Thickness",
+                      Object.entries(form.wallThickness)
+                        .filter(([_, value]) => value)
+                        .map(([key]) => `${key}"`)
+                        .join(", "),
+                    ],
+                    [
+                      "Base Thickness",
+                      Object.entries(form.baseThickness)
+                        .filter(([_, value]) => value)
+                        .map(([key]) => `${key}"`)
+                        .join(", "),
+                    ],
+                    [
+                      "Lid Thickness",
+                      Object.entries(form.lidThickness)
+                        .filter(([_, value]) => value)
+                        .map(([key]) => `${key}"`)
+                        .join(", "),
+                    ],
+                    ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
+                    ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
+                    ["Clam Shell", form.clamShell ? "Yes" : "No"],
+                    ["Engineered", form.engineered ? "Yes" : "No"],
+                    ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
+                    form.notes ? ["Notes", form.notes] : [],
+                    ["", ""], // Empty row for spacing between forms
+                  ].filter((row) => row.length > 0)
+                );
+
+                autoTable(doc, {
+                  startY: currentY,
+                  head: [["Field", "Value"]],
+                  body: allData,
+                  theme: "grid",
+                  headStyles: { fillColor: [59, 130, 246] },
+                  styles: { fontSize: 9 },
+                  columnStyles: {
+                    0: { cellWidth: 60 },
+                    1: { cellWidth: 120 },
+                  },
+                });
+
+                doc.save("all_forms.pdf");
+              }}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Export All as PDF</span>
+            </button>
+          </div>
+        </footer>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
