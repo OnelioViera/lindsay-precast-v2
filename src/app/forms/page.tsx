@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface FormData {
   id: string;
@@ -67,6 +67,19 @@ export default function FormsPage() {
     notes: "",
   });
 
+  // Load saved forms from localStorage on component mount
+  useEffect(() => {
+    const savedFormsData = localStorage.getItem("savedForms");
+    if (savedFormsData) {
+      setSavedForms(JSON.parse(savedFormsData));
+    }
+  }, []);
+
+  // Save forms to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("savedForms", JSON.stringify(savedForms));
+  }, [savedForms]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -123,26 +136,31 @@ export default function FormsPage() {
     setIsModalOpen(false);
   };
 
+  const deleteForm = (id: string) => {
+    setSavedForms(savedForms.filter((form) => form.id !== id));
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4">
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
       <main className="w-full max-w-5xl mx-auto px-4">
-        <div className="flex flex-col items-center space-y-8">
+        <div className="flex flex-col items-center space-y-6 sm:space-y-8">
           {/* Back button */}
           <Link
             href="/"
-            className="self-start text-white hover:text-gray-300 transition-colors"
+            className="self-start text-white hover:text-gray-300 transition-colors flex items-center space-x-2"
           >
-            ← Back to Home
+            <span>←</span>
+            <span>Back to Home</span>
           </Link>
 
           {/* Page title */}
-          <h1 className="text-6xl font-bold text-white text-center">
+          <h1 className="text-4xl sm:text-6xl font-bold text-white text-center">
             Forms Information
           </h1>
 
           {/* Content placeholder */}
-          <div className="w-full max-w-3xl text-gray-300 space-y-6">
-            <p className="text-lg">
+          <div className="w-full max-w-3xl text-gray-300 space-y-4 sm:space-y-6">
+            <p className="text-base sm:text-lg">
               Welcome to the Forms Information page. This section will contain
               all the necessary forms and documentation for Lindsay Precast.
             </p>
@@ -151,7 +169,7 @@ export default function FormsPage() {
             <div className="flex justify-center pt-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 text-lg font-medium shadow-lg hover:shadow-xl hover:scale-105"
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 text-base sm:text-lg font-medium shadow-lg hover:shadow-xl hover:scale-105"
               >
                 Create New Form
               </button>
@@ -159,20 +177,28 @@ export default function FormsPage() {
 
             {/* Saved Forms Display */}
             {savedForms.length > 0 && (
-              <div className="w-full space-y-6 mt-8">
-                <h2 className="text-2xl font-bold text-white text-center">
+              <div className="w-full space-y-4 sm:space-y-6 mt-6 sm:mt-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
                   Saved Forms
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
-                      className="bg-gray-50 rounded-xl p-6 shadow-lg border border-gray-200"
+                      className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-lg border border-gray-200 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
                     >
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                        {form.title}
-                      </h3>
-                      <div className="space-y-3">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                          {form.title}
+                        </h3>
+                        <button
+                          onClick={() => deleteForm(form.id)}
+                          className="text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="space-y-2 sm:space-y-3">
                         <div>
                           <p className="text-sm text-gray-500">Form Size</p>
                           <p className="text-gray-800">
@@ -262,13 +288,15 @@ export default function FormsPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-xl p-8 max-w-2xl w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Create New Form</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
+                Create New Form
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 ✕
               </button>
