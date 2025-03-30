@@ -2,19 +2,17 @@
 
 import { useState } from "react";
 
+type Unit = "feet" | "inches" | "yards" | "meters" | "centimeters";
+
+interface DimensionInput {
+  value: number;
+  unit: Unit;
+}
+
 interface CalculatorInputs {
-  length: {
-    value: number;
-    unit: "feet" | "inches" | "yards" | "meters" | "centimeters";
-  };
-  width: {
-    value: number;
-    unit: "feet" | "inches" | "yards" | "meters" | "centimeters";
-  };
-  height: {
-    value: number;
-    unit: "feet" | "inches" | "yards" | "meters" | "centimeters";
-  };
+  length: DimensionInput;
+  width: DimensionInput;
+  height: DimensionInput;
   quantity: number;
 }
 
@@ -27,10 +25,7 @@ export default function ConcreteCalculator() {
   });
   const [showResults, setShowResults] = useState(false);
 
-  const convertToFeet = (
-    value: number,
-    unit: CalculatorInputs["length"]["unit"]
-  ) => {
+  const convertToFeet = (value: number, unit: Unit) => {
     switch (unit) {
       case "inches":
         return value / 12;
@@ -61,7 +56,7 @@ export default function ConcreteCalculator() {
   const handleInputChange = (
     dimension: keyof Omit<CalculatorInputs, "quantity">,
     value: number,
-    unit: CalculatorInputs[typeof dimension]["unit"]
+    unit: Unit
   ) => {
     setInputs({
       ...inputs,
@@ -112,7 +107,7 @@ export default function ConcreteCalculator() {
                   handleInputChange(
                     "length",
                     inputs.length.value,
-                    e.target.value as CalculatorInputs["length"]["unit"]
+                    e.target.value as Unit
                   )
                 }
                 className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -154,7 +149,7 @@ export default function ConcreteCalculator() {
                   handleInputChange(
                     "width",
                     inputs.width.value,
-                    e.target.value as CalculatorInputs["width"]["unit"]
+                    e.target.value as Unit
                   )
                 }
                 className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -196,7 +191,7 @@ export default function ConcreteCalculator() {
                   handleInputChange(
                     "height",
                     inputs.height.value,
-                    e.target.value as CalculatorInputs["height"]["unit"]
+                    e.target.value as Unit
                   )
                 }
                 className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
