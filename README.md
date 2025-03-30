@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lindsay Precast V2
+
+This is the official website for Lindsay Precast, built with [Next.js](https://nextjs.org) and modern web technologies.
 
 ## Getting Started
 
