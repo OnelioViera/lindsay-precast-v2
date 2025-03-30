@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { put } from "@vercel/blob";
 
 export async function POST(request: Request) {
   try {
@@ -19,18 +18,15 @@ export async function POST(request: Request) {
       .join("");
     const filename = `${uniqueId}-${file.name}`;
 
-    // Convert File to Buffer
-    const bytes2 = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes2);
-
-    // Save file to public/pdfs directory
-    const path = join(process.cwd(), "public", "pdfs", filename);
-    await writeFile(path, buffer);
+    // Upload to Vercel Blob Storage
+    const blob = await put(filename, file, {
+      access: "public",
+    });
 
     // Return success response with file URL
     return NextResponse.json({
       id: uniqueId,
-      url: `/pdfs/${filename}`,
+      url: blob.url,
     });
   } catch (error) {
     console.error("Upload error:", error);
