@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import type { jsPDF as JSPDF } from "jspdf";
 
 interface FormData {
   id: string;
@@ -28,6 +32,7 @@ interface FormData {
   };
   antiSkidBase: boolean;
   antiSkidLid: boolean;
+  clamShell: boolean;
   maxPourHeight: number;
   engineered: boolean;
   dynamicBlocks: boolean;
@@ -37,6 +42,15 @@ interface FormData {
 export default function FormsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedForms, setSavedForms] = useState<FormData[]>([]);
+  const [editingFormId, setEditingFormId] = useState<string | null>(null);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    isOpen: boolean;
+    formId: string | null;
+  }>({
+    isOpen: false,
+    formId: null,
+  });
+  const [activeExportMenu, setActiveExportMenu] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<FormData, "id">>({
     title: "",
     formSize: {
@@ -61,6 +75,7 @@ export default function FormsPage() {
     },
     antiSkidBase: false,
     antiSkidLid: false,
+    clamShell: false,
     maxPourHeight: 0,
     engineered: false,
     dynamicBlocks: false,
@@ -124,15 +139,23 @@ export default function FormsPage() {
       return;
     }
 
-    const newForm: FormData = {
-      id: Date.now().toString(),
-      ...formData,
-    };
+    if (editingFormId) {
+      // Update existing form
+      setSavedForms((prevForms) =>
+        prevForms.map((form) =>
+          form.id === editingFormId ? { ...formData, id: editingFormId } : form
+        )
+      );
+    } else {
+      // Create new form
+      const newForm: FormData = {
+        id: Date.now().toString(),
+        ...formData,
+      };
+      setSavedForms((prevForms) => [...prevForms, newForm]);
+    }
 
-    // Update state with the new form
-    setSavedForms((prevForms) => [...prevForms, newForm]);
-
-    // Reset form data
+    // Reset form data and close modal
     setFormData({
       title: "",
       formSize: {
@@ -157,17 +180,137 @@ export default function FormsPage() {
       },
       antiSkidBase: false,
       antiSkidLid: false,
+      clamShell: false,
       maxPourHeight: 0,
       engineered: false,
       dynamicBlocks: false,
       notes: "",
     });
-
+    setEditingFormId(null);
     setIsModalOpen(false);
   };
 
   const deleteForm = (id: string) => {
-    setSavedForms((prevForms) => prevForms.filter((form) => form.id !== id));
+    setDeleteConfirmModal({ isOpen: true, formId: id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmModal.formId) {
+      setSavedForms((prevForms) =>
+        prevForms.filter((form) => form.id !== deleteConfirmModal.formId)
+      );
+      setDeleteConfirmModal({ isOpen: false, formId: null });
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmModal({ isOpen: false, formId: null });
+  };
+
+  const exportToExcel = (form: FormData) => {
+    const data = [
+      ["Field", "Value"],
+      ["Form Title", form.title],
+      ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
+      ["Max Pour Height", `${form.maxPourHeight}"`],
+      [
+        "Wall Thickness",
+        Object.entries(form.wallThickness)
+          .filter(([_, value]) => value)
+          .map(([key]) => `${key}"`)
+          .join(", "),
+      ],
+      [
+        "Base Thickness",
+        Object.entries(form.baseThickness)
+          .filter(([_, value]) => value)
+          .map(([key]) => `${key}"`)
+          .join(", "),
+      ],
+      [
+        "Lid Thickness",
+        Object.entries(form.lidThickness)
+          .filter(([_, value]) => value)
+          .map(([key]) => `${key}"`)
+          .join(", "),
+      ],
+      ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
+      ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
+      ["Clam Shell", form.clamShell ? "Yes" : "No"],
+      ["Engineered", form.engineered ? "Yes" : "No"],
+      ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
+      ["Notes", form.notes || "N/A"],
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Form Details");
+    XLSX.writeFile(wb, `${form.title}_form.xlsx`);
+  };
+
+  const exportToPDF = (form: FormData) => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      startY: 25,
+      head: [["Field", "Value"]],
+      body: [
+        ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
+        ["Max Pour Height", `${form.maxPourHeight}"`],
+        [
+          "Wall Thickness",
+          Object.entries(form.wallThickness)
+            .filter(([_, value]) => value)
+            .map(([key]) => `${key}"`)
+            .join(", "),
+        ],
+        [
+          "Base Thickness",
+          Object.entries(form.baseThickness)
+            .filter(([_, value]) => value)
+            .map(([key]) => `${key}"`)
+            .join(", "),
+        ],
+        [
+          "Lid Thickness",
+          Object.entries(form.lidThickness)
+            .filter(([_, value]) => value)
+            .map(([key]) => `${key}"`)
+            .join(", "),
+        ],
+        ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
+        ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
+        ["Clam Shell", form.clamShell ? "Yes" : "No"],
+        ["Engineered", form.engineered ? "Yes" : "No"],
+        ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [59, 130, 246] },
+      styles: { fontSize: 10 },
+    });
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text(form.title, 14, 15);
+
+    // Add notes if they exist
+    if (form.notes) {
+      const finalY = (doc as any).lastAutoTable.finalY || 100;
+      doc.setFontSize(12);
+      doc.text("Notes:", 14, finalY + 10);
+      doc.setFontSize(10);
+      const splitNotes = doc.splitTextToSize(form.notes, 180);
+      doc.text(splitNotes, 14, finalY + 20);
+    }
+
+    doc.save(`${form.title}_form.pdf`);
+  };
+
+  const handleExportClick = (formId: string) => {
+    setActiveExportMenu(formId);
+  };
+
+  const handleExportClose = () => {
+    setActiveExportMenu(null);
   };
 
   return (
@@ -221,13 +364,6 @@ export default function FormsPage() {
                         <h3 className="text-lg sm:text-xl font-semibold text-white">
                           {form.title}
                         </h3>
-                        <button
-                          onClick={() => deleteForm(form.id)}
-                          className="text-white hover:text-red-200 transition-colors p-2 hover:bg-blue-700 rounded-full flex items-center justify-center w-8 h-8"
-                          aria-label="Delete form"
-                        >
-                          ✕
-                        </button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div className="bg-white p-2 rounded-lg border border-gray-100">
@@ -295,6 +431,14 @@ export default function FormsPage() {
                         </div>
                         <div className="bg-white p-2 rounded-lg border border-gray-100">
                           <p className="text-sm font-medium text-gray-500">
+                            Clam Shell
+                          </p>
+                          <p className="text-gray-900">
+                            {form.clamShell ? "Yes" : "No"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-gray-100">
+                          <p className="text-sm font-medium text-gray-500">
                             Engineered
                           </p>
                           <p className="text-gray-900">
@@ -318,6 +462,66 @@ export default function FormsPage() {
                           <p className="text-gray-900 text-sm">{form.notes}</p>
                         </div>
                       )}
+                      <div className="mt-4 flex justify-end space-x-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteForm(form.id);
+                          }}
+                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(form);
+                            setEditingFormId(form.id);
+                            setIsModalOpen(true);
+                          }}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExportClick(form.id);
+                            }}
+                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
+                          >
+                            Export
+                          </button>
+                          {activeExportMenu === form.id && (
+                            <div
+                              className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-lg shadow-xl py-1 z-50"
+                              onMouseLeave={handleExportClose}
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  exportToExcel(form);
+                                  handleExportClose();
+                                }}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                              >
+                                Export as Excel
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  exportToPDF(form);
+                                  handleExportClose();
+                                }}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                              >
+                                Export as PDF
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -349,7 +553,7 @@ export default function FormsPage() {
                   htmlFor="title"
                   className="block text-sm font-medium text-gray-300 mb-1"
                 >
-                  Form Title
+                  Form Title <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -369,7 +573,7 @@ export default function FormsPage() {
                     htmlFor="width"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Form Width (inches)
+                    Form Width (inches) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -393,7 +597,7 @@ export default function FormsPage() {
                     htmlFor="length"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Form Length (inches)
+                    Form Length (inches) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -416,7 +620,8 @@ export default function FormsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Wall Thickness (inches)
+                  Wall Thickness (inches){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
@@ -470,7 +675,8 @@ export default function FormsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Base Thickness (inches)
+                  Base Thickness (inches){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
@@ -570,7 +776,7 @@ export default function FormsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Lid Thickness (inches)
+                  Lid Thickness (inches) <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
@@ -668,7 +874,7 @@ export default function FormsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -709,6 +915,26 @@ export default function FormsPage() {
                     Anti-skid Lid
                   </label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="clamShell"
+                    checked={formData.clamShell}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        clamShell: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor="clamShell"
+                    className="text-sm font-medium text-gray-300"
+                  >
+                    Clam Shell
+                  </label>
+                </div>
               </div>
 
               <div>
@@ -716,7 +942,8 @@ export default function FormsPage() {
                   htmlFor="maxPourHeight"
                   className="block text-sm font-medium text-gray-300 mb-1"
                 >
-                  Max Pour Height (inches)
+                  Max Pour Height (inches){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -812,6 +1039,35 @@ export default function FormsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-white mb-4">Delete Form</h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this form? This action cannot be
+                undone.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
