@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import ConcreteCalculator from "@/components/ConcreteCalculator";
 
 interface PDFFile {
   id: string;
@@ -274,6 +275,11 @@ export default function EngineeringPage() {
             <h2 className="text-2xl sm:text-3xl font-semibold text-gray-300">
               Engineering Information
             </h2>
+          </div>
+
+          {/* Concrete Calculator */}
+          <div className="w-full max-w-4xl">
+            <ConcreteCalculator />
           </div>
 
           {/* PDF Storage Section */}
