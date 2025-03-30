@@ -345,185 +345,196 @@ export default function FormsPage() {
 
           {/* Content placeholder */}
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
-            {/* Saved Forms Display */}
-            <div className="w-full space-y-4 sm:space-y-6 mt-6 sm:mt-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
-                Saved Forms
-              </h2>
-              <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 sm:gap-8">
-                {savedForms.map((form) => (
-                  <div
-                    key={form.id}
-                    className="bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700"
-                  >
-                    <div className="flex justify-between items-center bg-blue-600 px-4 py-2 rounded-t-xl">
-                      <h3 className="text-lg sm:text-xl font-semibold text-white">
-                        {form.title}
-                      </h3>
-                    </div>
-                    <div className="p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Form Size
-                          </p>
-                          <p className="text-gray-900">
-                            {form.formSize.width}" x {form.formSize.length}"
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Max Pour Height
-                          </p>
-                          <p className="text-gray-900">{form.maxPourHeight}"</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Wall Thickness
-                          </p>
-                          <p className="text-gray-900">
-                            {Object.entries(form.wallThickness)
-                              .filter(([_, value]) => value)
-                              .map(([key]) => `${key}"`)
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Base Thickness
-                          </p>
-                          <p className="text-gray-900">
-                            {Object.entries(form.baseThickness)
-                              .filter(([_, value]) => value)
-                              .map(([key]) => `${key}"`)
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Lid Thickness
-                          </p>
-                          <p className="text-gray-900">
-                            {Object.entries(form.lidThickness)
-                              .filter(([_, value]) => value)
-                              .map(([key]) => `${key}"`)
-                              .join(", ")}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Anti-skid Base
-                          </p>
-                          <p className="text-gray-900">
-                            {form.antiSkidBase ? "Yes" : "No"}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Anti-skid Lid
-                          </p>
-                          <p className="text-gray-900">
-                            {form.antiSkidLid ? "Yes" : "No"}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Clam Shell
-                          </p>
-                          <p className="text-gray-900">
-                            {form.clamShell ? "Yes" : "No"}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Engineered
-                          </p>
-                          <p className="text-gray-900">
-                            {form.engineered ? "Yes" : "No"}
-                          </p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Dynamic Blocks
-                          </p>
-                          <p className="text-gray-900">
-                            {form.dynamicBlocks ? "Yes" : "No"}
-                          </p>
-                        </div>
+            {savedForms.length > 0 ? (
+              <div className="w-full space-y-4 sm:space-y-6 mt-6 sm:mt-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
+                  Saved Forms
+                </h2>
+                <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 sm:gap-8">
+                  {savedForms.map((form) => (
+                    <div
+                      key={form.id}
+                      className="bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700"
+                    >
+                      <div className="flex justify-between items-center bg-blue-600 px-4 py-2 rounded-t-xl">
+                        <h3 className="text-lg sm:text-xl font-semibold text-white">
+                          {form.title}
+                        </h3>
                       </div>
-                      {form.notes && (
-                        <div className="mt-2 bg-white p-2 rounded-lg border border-gray-100">
-                          <p className="text-sm font-medium text-gray-500">
-                            Notes
-                          </p>
-                          <p className="text-gray-900 text-sm">{form.notes}</p>
+                      <div className="p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Form Size
+                            </p>
+                            <p className="text-gray-900">
+                              {form.formSize.width}" x {form.formSize.length}"
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Max Pour Height
+                            </p>
+                            <p className="text-gray-900">
+                              {form.maxPourHeight}"
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Wall Thickness
+                            </p>
+                            <p className="text-gray-900">
+                              {Object.entries(form.wallThickness)
+                                .filter(([_, value]) => value)
+                                .map(([key]) => `${key}"`)
+                                .join(", ")}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Base Thickness
+                            </p>
+                            <p className="text-gray-900">
+                              {Object.entries(form.baseThickness)
+                                .filter(([_, value]) => value)
+                                .map(([key]) => `${key}"`)
+                                .join(", ")}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Lid Thickness
+                            </p>
+                            <p className="text-gray-900">
+                              {Object.entries(form.lidThickness)
+                                .filter(([_, value]) => value)
+                                .map(([key]) => `${key}"`)
+                                .join(", ")}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Anti-skid Base
+                            </p>
+                            <p className="text-gray-900">
+                              {form.antiSkidBase ? "Yes" : "No"}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Anti-skid Lid
+                            </p>
+                            <p className="text-gray-900">
+                              {form.antiSkidLid ? "Yes" : "No"}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Clam Shell
+                            </p>
+                            <p className="text-gray-900">
+                              {form.clamShell ? "Yes" : "No"}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Engineered
+                            </p>
+                            <p className="text-gray-900">
+                              {form.engineered ? "Yes" : "No"}
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Dynamic Blocks
+                            </p>
+                            <p className="text-gray-900">
+                              {form.dynamicBlocks ? "Yes" : "No"}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div className="mt-4 flex justify-end space-x-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteForm(form.id);
-                          }}
-                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
-                        >
-                          Delete
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(form);
-                            setEditingFormId(form.id);
-                            setIsModalOpen(true);
-                          }}
-                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
-                        >
-                          Edit
-                        </button>
-                        <div className="relative">
+                        {form.notes && (
+                          <div className="mt-2 bg-white p-2 rounded-lg border border-gray-100">
+                            <p className="text-sm font-medium text-gray-500">
+                              Notes
+                            </p>
+                            <p className="text-gray-900 text-sm">
+                              {form.notes}
+                            </p>
+                          </div>
+                        )}
+                        <div className="mt-4 flex justify-end space-x-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleExportClick(form.id);
+                              deleteForm(form.id);
                             }}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
                           >
-                            Export
+                            Delete
                           </button>
-                          {activeExportMenu === form.id && (
-                            <div
-                              className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-lg shadow-xl py-1 z-50"
-                              onMouseLeave={handleExportClose}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData(form);
+                              setEditingFormId(form.id);
+                              setIsModalOpen(true);
+                            }}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+                          >
+                            Edit
+                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportClick(form.id);
+                              }}
+                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
                             >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  exportToExcel(form);
-                                  handleExportClose();
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                              Export
+                            </button>
+                            {activeExportMenu === form.id && (
+                              <div
+                                className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-lg shadow-xl py-1 z-50"
+                                onMouseLeave={handleExportClose}
                               >
-                                Excel
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  exportToPDF(form);
-                                  handleExportClose();
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                              >
-                                PDF
-                              </button>
-                            </div>
-                          )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    exportToExcel(form);
+                                    handleExportClose();
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                                >
+                                  Excel
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    exportToPDF(form);
+                                    handleExportClose();
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                                >
+                                  PDF
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-400">
+                  No forms saved yet. Click "Create New Form" to add one.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </main>
