@@ -373,13 +373,6 @@ export default function EngineeringPage() {
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleFileUpload}
       />
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex justify-center space-x-4">
-          {/* Add footer content here */}
-        </div>
-      </footer>
     </div>
   );
 }
