@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import UploadModal from "@/components/UploadModal";
 import ConcreteCalculatorModal from "@/components/ConcreteCalculatorModal";
+import ConcreteVolumeCalculatorModal from "@/components/ConcreteVolumeCalculatorModal";
+import VolumeCalculatorModal from "@/components/VolumeCalculatorModal";
 
 interface PDFFile {
   id: string;
@@ -18,6 +20,12 @@ export default function EngineeringPage() {
   const [pdfFiles, setPdfFiles] = useState<PDFFile[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
+  const [
+    isConcreteVolumeCalculatorModalOpen,
+    setIsConcreteVolumeCalculatorModalOpen,
+  ] = useState(false);
+  const [isVolumeCalculatorModalOpen, setIsVolumeCalculatorModalOpen] =
+    useState(false);
 
   // Load saved files from localStorage on component mount
   useEffect(() => {
@@ -145,8 +153,8 @@ export default function EngineeringPage() {
           </div>
 
           <div className="space-y-8 w-full">
-            {/* Concrete Calculator Button */}
-            <div className="flex justify-center">
+            {/* Calculator Buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
               <button
                 onClick={() => setIsCalculatorModalOpen(true)}
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -166,6 +174,46 @@ export default function EngineeringPage() {
                   />
                 </svg>
                 Concrete Calculator
+              </button>
+              <button
+                onClick={() => setIsConcreteVolumeCalculatorModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 15.75V18m-7.5-6h15m-15 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z"
+                  />
+                </svg>
+                Concrete Volume Calculator
+              </button>
+              <button
+                onClick={() => setIsVolumeCalculatorModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 15.75V18m-7.5-6h15m-15 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z"
+                  />
+                </svg>
+                Circular Slab/Tube Calculator
               </button>
             </div>
 
@@ -267,6 +315,18 @@ export default function EngineeringPage() {
       <ConcreteCalculatorModal
         isOpen={isCalculatorModalOpen}
         onClose={() => setIsCalculatorModalOpen(false)}
+      />
+
+      {/* Concrete Volume Calculator Modal */}
+      <ConcreteVolumeCalculatorModal
+        isOpen={isConcreteVolumeCalculatorModalOpen}
+        onClose={() => setIsConcreteVolumeCalculatorModalOpen(false)}
+      />
+
+      {/* Volume Calculator Modal */}
+      <VolumeCalculatorModal
+        isOpen={isVolumeCalculatorModalOpen}
+        onClose={() => setIsVolumeCalculatorModalOpen(false)}
       />
     </div>
   );
