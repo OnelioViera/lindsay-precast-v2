@@ -60,9 +60,7 @@ export default function EngineeringPage() {
           }
 
           setPdfFiles(filesToKeep);
-          toast.warning(
-            "Storage limit reached. Some older files were removed."
-          );
+          toast.error("Storage limit reached. Some older files were removed.");
         } else {
           localStorage.setItem("pdfFiles", JSON.stringify(pdfFiles));
         }
