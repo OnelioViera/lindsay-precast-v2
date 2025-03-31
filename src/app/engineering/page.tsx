@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import UploadModal from "@/components/UploadModal";
+import ConcreteCalculatorModal from "@/components/ConcreteCalculatorModal";
 
 interface PDFFile {
   id: string;
@@ -16,20 +17,61 @@ interface PDFFile {
 export default function EngineeringPage() {
   const [pdfFiles, setPdfFiles] = useState<PDFFile[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
 
   // Load saved files from localStorage on component mount
   useEffect(() => {
-    const savedFiles = localStorage.getItem("pdfFiles");
-    if (savedFiles) {
-      const parsedFiles = JSON.parse(savedFiles);
-      setPdfFiles(parsedFiles);
+    try {
+      const savedFiles = localStorage.getItem("pdfFiles");
+      if (savedFiles) {
+        const parsedFiles = JSON.parse(savedFiles);
+        setPdfFiles(parsedFiles);
+      }
+    } catch (error) {
+      console.error("Error loading files:", error);
+      toast.error("Error loading saved files");
     }
   }, []);
 
   // Save files to localStorage whenever they change
   useEffect(() => {
-    if (pdfFiles.length > 0) {
-      localStorage.setItem("pdfFiles", JSON.stringify(pdfFiles));
+    try {
+      if (pdfFiles.length > 0) {
+        // Check if we're approaching storage limit
+        const storageSize = new Blob([JSON.stringify(pdfFiles)]).size;
+        const maxStorageSize = 4.5 * 1024 * 1024; // 4.5MB limit to be safe
+
+        if (storageSize > maxStorageSize) {
+          // Remove oldest files until we're under the limit
+          const sortedFiles = [...pdfFiles].sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+          );
+
+          let currentSize = storageSize;
+          const filesToKeep: PDFFile[] = [];
+
+          for (let i = sortedFiles.length - 1; i >= 0; i--) {
+            const fileSize = new Blob([JSON.stringify(sortedFiles[i])]).size;
+            if (currentSize - fileSize > maxStorageSize) {
+              currentSize -= fileSize;
+            } else {
+              filesToKeep.unshift(sortedFiles[i]);
+            }
+          }
+
+          setPdfFiles(filesToKeep);
+          toast.warning(
+            "Storage limit reached. Some older files were removed."
+          );
+        } else {
+          localStorage.setItem("pdfFiles", JSON.stringify(pdfFiles));
+        }
+      } else {
+        localStorage.removeItem("pdfFiles");
+      }
+    } catch (error) {
+      console.error("Error saving files:", error);
+      toast.error("Error saving files. Some files may be lost.");
     }
   }, [pdfFiles]);
 
@@ -108,24 +150,44 @@ export default function EngineeringPage() {
           <div className="mt-8 bg-gray-800 rounded-xl p-4 shadow-lg w-full max-w-3xl">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">PDF Storage</h2>
-              <button
-                onClick={() => setIsUploadModalOpen(true)}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2 text-sm"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setIsCalculatorModalOpen(true)}
+                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2 text-sm"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Upload PDF</span>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Concrete Calculator</span>
+                </button>
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2 text-sm"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Upload PDF</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -193,6 +255,12 @@ export default function EngineeringPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleFileUpload}
+      />
+
+      {/* Concrete Calculator Modal */}
+      <ConcreteCalculatorModal
+        isOpen={isCalculatorModalOpen}
+        onClose={() => setIsCalculatorModalOpen(false)}
       />
     </div>
   );
