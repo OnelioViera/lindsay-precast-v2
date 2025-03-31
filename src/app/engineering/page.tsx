@@ -146,9 +146,9 @@ export default function EngineeringPage() {
             </h2>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-8 w-full">
             {/* Concrete Calculator Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-center">
               <button
                 onClick={() => setIsCalculatorModalOpen(true)}
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -167,14 +167,34 @@ export default function EngineeringPage() {
                     d="M15.75 15.75V18m-7.5-6h15m-15 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z"
                   />
                 </svg>
-                Create Concrete Calculator
+                Concrete Calculator
               </button>
             </div>
 
             {/* PDF Storage Section */}
-            <div className="bg-gray-800 rounded-xl p-4 shadow-lg w-full max-w-3xl">
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg w-full max-w-6xl mx-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">PDF Storage</h2>
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                    />
+                  </svg>
+                  Upload PDF
+                </button>
               </div>
 
               <div className="space-y-3">
