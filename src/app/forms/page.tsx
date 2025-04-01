@@ -371,10 +371,7 @@ export default function FormsPage() {
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
             {savedForms.length > 0 ? (
               <div className="w-full space-y-4 sm:space-y-6 mt-6 sm:mt-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
-                  Saved Forms
-                </h2>
-                <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 sm:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
@@ -384,6 +381,17 @@ export default function FormsPage() {
                         <h3 className="text-lg sm:text-xl font-semibold text-white">
                           {form.title}
                         </h3>
+                        <div className="text-white flex items-center space-x-2">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                          <span className="text-sm">Form Details</span>
+                        </div>
                       </div>
                       <div className="p-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -487,13 +495,13 @@ export default function FormsPage() {
                             </p>
                           </div>
                         )}
-                        <div className="mt-4 flex justify-end space-x-3">
+                        <div className="mt-4 flex justify-center space-x-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteForm(form.id);
                             }}
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             Delete
                           </button>
@@ -504,7 +512,7 @@ export default function FormsPage() {
                               setEditingFormId(form.id);
                               setIsModalOpen(true);
                             }}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             Edit
                           </button>
@@ -514,7 +522,7 @@ export default function FormsPage() {
                                 e.stopPropagation();
                                 handleExportClick(form.id);
                               }}
-                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
                             >
                               Export
                             </button>
@@ -568,7 +576,7 @@ export default function FormsPage() {
         <div className="max-w-7xl mx-auto flex justify-center space-x-4">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -645,7 +653,7 @@ export default function FormsPage() {
                   window.URL.revokeObjectURL(url);
                   document.body.removeChild(a);
                 }}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
               >
                 Export All Forms
               </button>
@@ -737,8 +745,14 @@ export default function FormsPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white">
                 Create New Form

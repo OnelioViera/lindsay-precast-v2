@@ -16,6 +16,7 @@ interface SymonsData {
     title: string;
     url: string;
   }[];
+  pdfUrl?: string;
 }
 
 export default function SymonsPage() {
@@ -26,6 +27,7 @@ export default function SymonsPage() {
     title: "",
     description: "",
     links: [],
+    pdfFile: null as File | null,
   });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     isOpen: boolean;
@@ -63,6 +65,15 @@ export default function SymonsPage() {
     }
   }, [savedSymons]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "application/pdf") {
+      setSymonData({ ...symonData, pdfFile: file });
+    } else {
+      alert("Please upload a PDF file");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -71,32 +82,44 @@ export default function SymonsPage() {
       return;
     }
 
-    if (editingSymonId) {
-      // Update existing symon
-      setSavedSymons((prevSymons) =>
-        prevSymons.map((symon) =>
-          symon.id === editingSymonId
-            ? { ...symonData, id: editingSymonId }
-            : symon
-        )
-      );
-    } else {
-      // Create new symon
-      const newSymon: SymonsData = {
-        id: Date.now().toString(),
-        ...symonData,
-      };
-      setSavedSymons((prevSymons) => [...prevSymons, newSymon]);
-    }
+    try {
+      // Create a URL for the PDF file if one is selected
+      const pdfUrl = symonData.pdfFile
+        ? URL.createObjectURL(symonData.pdfFile)
+        : undefined;
 
-    // Reset form and close modal
-    setSymonData({
-      title: "",
-      description: "",
-      links: [],
-    });
-    setEditingSymonId(null);
-    setIsModalOpen(false);
+      if (editingSymonId) {
+        // Update existing symon
+        setSavedSymons((prevSymons) =>
+          prevSymons.map((symon) =>
+            symon.id === editingSymonId
+              ? { ...symonData, id: editingSymonId, pdfUrl }
+              : symon
+          )
+        );
+      } else {
+        // Create new symon
+        const newSymon: SymonsData = {
+          id: Date.now().toString(),
+          ...symonData,
+          pdfUrl,
+        };
+        setSavedSymons((prevSymons) => [...prevSymons, newSymon]);
+      }
+
+      // Reset form and close modal
+      setSymonData({
+        title: "",
+        description: "",
+        links: [],
+        pdfFile: null,
+      });
+      setEditingSymonId(null);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error saving symon:", error);
+      alert("Error saving symon");
+    }
   };
 
   const deleteSymon = (id: string) => {
@@ -174,6 +197,7 @@ export default function SymonsPage() {
                     title: "",
                     description: "",
                     links: [],
+                    pdfFile: null,
                   });
                   setEditingSymonId(null);
                   setIsModalOpen(true);
@@ -248,6 +272,30 @@ export default function SymonsPage() {
                               </a>
                             ))}
                           </div>
+                        </div>
+                      )}
+                      {symon.pdfUrl && (
+                        <div className="mt-4">
+                          <a
+                            href={symon.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-blue-400 hover:text-blue-300"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 mr-2"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            View PDF
+                          </a>
                         </div>
                       )}
                     </div>
@@ -328,9 +376,21 @@ export default function SymonsPage() {
                   <button
                     type="button"
                     onClick={addLink}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2 text-sm font-medium"
                   >
-                    + Add Link
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Add Link</span>
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -364,6 +424,27 @@ export default function SymonsPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="pdf"
+                  className="block text-sm font-medium text-gray-300 mb-1"
+                >
+                  PDF File
+                </label>
+                <input
+                  type="file"
+                  id="pdf"
+                  accept=".pdf"
+                  onChange={handleFileChange}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {symonData.pdfFile && (
+                  <p className="mt-1 text-sm text-gray-400">
+                    Selected file: {symonData.pdfFile.name}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4 pt-4">
