@@ -1,8 +1,13 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
+import { Toaster } from "react-hot-toast";
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
+      <Toaster position="top-right" />
+      <Navbar />
       <main className="w-full max-w-5xl mx-auto px-4 flex-1 flex items-center justify-center">
         <div className="relative w-full">
           {/* Main content container */}
