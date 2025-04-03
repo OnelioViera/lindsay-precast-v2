@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { jsPDF as JSPDF } from "jspdf";
@@ -243,6 +243,7 @@ export default function FormsPage() {
     setDeleteConfirmModal({ isOpen: false, formId: null });
   };
 
+<<<<<<< HEAD
   const exportToExcel = (form: FormData) => {
     const data = [
       ["Field", "Value"],
@@ -282,11 +283,71 @@ export default function FormsPage() {
       ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
       ["Notes", form.notes || "N/A"],
     ];
+=======
+  const exportToExcel = async (form: FormData) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Form Details");
+>>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Form Details");
-    XLSX.writeFile(wb, `${form.title}_form.xlsx`);
+    // Add title row with styling
+    worksheet.addRow(["Form Details"]).font = { bold: true, size: 14 };
+    worksheet.mergeCells("A1:B1");
+
+    // Add data rows
+    worksheet.addRow(["Field", "Value"]);
+    worksheet.addRow(["Form Title", form.title]);
+    worksheet.addRow([
+      "Form Size",
+      `${form.formSize.width}" x ${form.formSize.length}"`,
+    ]);
+    worksheet.addRow(["Max Pour Height", `${form.maxPourHeight}"`]);
+    worksheet.addRow([
+      "Wall Thickness",
+      Object.entries(form.wallThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow([
+      "Base Thickness",
+      Object.entries(form.baseThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow([
+      "Lid Thickness",
+      Object.entries(form.lidThickness)
+        .filter(([_, value]) => value)
+        .map(([key]) => `${key}"`)
+        .join(", "),
+    ]);
+    worksheet.addRow(["Anti-Skid Base", form.antiSkidBase ? "Yes" : "No"]);
+    worksheet.addRow(["Anti-Skid Lid", form.antiSkidLid ? "Yes" : "No"]);
+    worksheet.addRow(["Clam Shell", form.clamShell ? "Yes" : "No"]);
+    worksheet.addRow(["Engineered", form.engineered ? "Yes" : "No"]);
+    worksheet.addRow(["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"]);
+    worksheet.addRow(["Notes", form.notes || "N/A"]);
+
+    // Style the header row
+    worksheet.getRow(2).font = { bold: true };
+
+    // Auto-fit columns
+    worksheet.columns.forEach((column) => {
+      column.width = 20;
+    });
+
+    // Generate the Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${form.title.replace(/\s+/g, "_")}_form_details.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const exportToPDF = (form: FormData) => {
@@ -384,10 +445,7 @@ export default function FormsPage() {
           <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
             {savedForms.length > 0 ? (
               <div className="w-full space-y-4 sm:space-y-6 mt-6 sm:mt-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
-                  Saved Forms
-                </h2>
-                <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 sm:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                   {savedForms.map((form) => (
                     <div
                       key={form.id}
@@ -397,6 +455,17 @@ export default function FormsPage() {
                         <h3 className="text-lg sm:text-xl font-semibold text-white">
                           {form.title}
                         </h3>
+                        <div className="text-white flex items-center space-x-2">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                          <span className="text-sm">Form Details</span>
+                        </div>
                       </div>
                       <div className="p-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -519,13 +588,13 @@ export default function FormsPage() {
                             </p>
                           </div>
                         )}
-                        <div className="mt-4 flex justify-end space-x-3">
+                        <div className="mt-4 flex justify-center space-x-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteForm(form.id);
                             }}
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             Delete
                           </button>
@@ -536,7 +605,7 @@ export default function FormsPage() {
                               setEditingFormId(form.id);
                               setIsModalOpen(true);
                             }}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             Edit
                           </button>
@@ -546,7 +615,7 @@ export default function FormsPage() {
                                 e.stopPropagation();
                                 handleExportClick(form.id);
                               }}
-                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
                             >
                               Export
                             </button>
@@ -600,7 +669,7 @@ export default function FormsPage() {
         <div className="max-w-7xl mx-auto flex justify-center space-x-4">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -619,21 +688,38 @@ export default function FormsPage() {
           {savedForms.length > 0 && (
             <>
               <button
-                onClick={() => {
-                  const ws = XLSX.utils.json_to_sheet(
-                    savedForms.map((form) => ({
-                      "Form Title": form.title,
-                      "Form Size": `${form.formSize.width}" x ${form.formSize.length}"`,
-                      "Max Pour Height": `${form.maxPourHeight}"`,
-                      "Wall Thickness": Object.entries(form.wallThickness)
+                onClick={async () => {
+                  const workbook = new ExcelJS.Workbook();
+                  const worksheet = workbook.addWorksheet("Forms");
+
+                  worksheet.columns = [
+                    { header: "Form Title", key: "title" },
+                    { header: "Form Size", key: "size" },
+                    { header: "Wall Thickness", key: "wallThickness" },
+                    { header: "Base Thickness", key: "baseThickness" },
+                    { header: "Lid Thickness", key: "lidThickness" },
+                    { header: "Anti-Skid Base", key: "antiSkidBase" },
+                    { header: "Anti-Skid Lid", key: "antiSkidLid" },
+                    { header: "Clam Shell", key: "clamShell" },
+                    { header: "Max Pour Height", key: "maxPourHeight" },
+                    { header: "Engineered", key: "engineered" },
+                    { header: "Dynamic Blocks", key: "dynamicBlocks" },
+                    { header: "Notes", key: "notes" },
+                  ];
+
+                  savedForms.forEach((form) => {
+                    worksheet.addRow({
+                      title: form.title,
+                      size: `${form.formSize.width}" x ${form.formSize.length}"`,
+                      wallThickness: Object.entries(form.wallThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => `${key}"`)
                         .join(", "),
-                      "Base Thickness": Object.entries(form.baseThickness)
+                      baseThickness: Object.entries(form.baseThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => `${key}"`)
                         .join(", "),
-                      "Lid Thickness": Object.entries(form.lidThickness)
+                      lidThickness: Object.entries(form.lidThickness)
                         .filter(([_, value]) => value)
                         .map(([key]) => {
                           if (key === "deck" || key === "clamshell") {
@@ -642,6 +728,7 @@ export default function FormsPage() {
                           return `${key}"`;
                         })
                         .join(", "),
+<<<<<<< HEAD
                       "Anti-skid Base": form.antiSkidBase ? "Yes" : "No",
                       "Clam Shell": form.clamShell ? "Yes" : "No",
                       Engineered: form.engineered ? "Yes" : "No",
@@ -652,22 +739,34 @@ export default function FormsPage() {
                   const wb = XLSX.utils.book_new();
                   XLSX.utils.book_append_sheet(wb, ws, "Forms");
                   XLSX.writeFile(wb, "all_forms.xlsx");
+=======
+                      antiSkidBase: form.antiSkidBase ? "Yes" : "No",
+                      antiSkidLid: form.antiSkidLid ? "Yes" : "No",
+                      clamShell: form.clamShell ? "Yes" : "No",
+                      maxPourHeight: form.maxPourHeight,
+                      engineered: form.engineered ? "Yes" : "No",
+                      dynamicBlocks: form.dynamicBlocks ? "Yes" : "No",
+                      notes: form.notes,
+                    });
+                  });
+
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "forms.xlsx";
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+>>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
                 }}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Export All as Excel</span>
+                Export All Forms
               </button>
               <button
                 onClick={() => {
@@ -768,8 +867,14 @@ export default function FormsPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-xl p-4 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white">
                 Create New Form
