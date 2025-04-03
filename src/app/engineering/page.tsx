@@ -152,13 +152,6 @@ export default function EngineeringPage() {
             </h2>
           </div>
 
-<<<<<<< HEAD
-          {/* Content placeholder */}
-          <div className="w-full max-w-5xl text-gray-300 space-y-4 sm:space-y-6">
-            <p className="text-center">
-              Engineering information will be displayed here.
-            </p>
-=======
           <div className="space-y-8 w-full">
             {/* Calculator Buttons */}
             <div className="flex flex-wrap justify-center gap-4">
@@ -307,7 +300,6 @@ export default function EngineeringPage() {
                 ))}
               </div>
             </div>
->>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
           </div>
         </div>
       </main>
@@ -318,8 +310,6 @@ export default function EngineeringPage() {
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleFileUpload}
       />
-<<<<<<< HEAD
-=======
 
       {/* Concrete Calculator Modal */}
       <ConcreteCalculatorModal
@@ -338,7 +328,6 @@ export default function EngineeringPage() {
         isOpen={isVolumeCalculatorModalOpen}
         onClose={() => setIsVolumeCalculatorModalOpen(false)}
       />
->>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
     </div>
   );
 }
