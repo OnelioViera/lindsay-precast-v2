@@ -243,51 +243,9 @@ export default function FormsPage() {
     setDeleteConfirmModal({ isOpen: false, formId: null });
   };
 
-<<<<<<< HEAD
-  const exportToExcel = (form: FormData) => {
-    const data = [
-      ["Field", "Value"],
-      ["Form Title", form.title],
-      ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
-      ["Max Base/wall Pour height", `${form.maxPourHeight}"`],
-      ["Max Riser Pour", `${form.maxRiserPour}"`],
-      [
-        "Wall Thickness",
-        Object.entries(form.wallThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
-          .join(", "),
-      ],
-      [
-        "Base Thickness",
-        Object.entries(form.baseThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
-          .join(", "),
-      ],
-      [
-        "Lid Thickness",
-        Object.entries(form.lidThickness)
-          .filter(([_, value]) => value)
-          .map(([key]) => {
-            if (key === "deck" || key === "clamshell") {
-              return key.charAt(0).toUpperCase() + key.slice(1);
-            }
-            return `${key}"`;
-          })
-          .join(", "),
-      ],
-      ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
-      ["Clam Shell", form.clamShell ? "Yes" : "No"],
-      ["Engineered", form.engineered ? "Yes" : "No"],
-      ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
-      ["Notes", form.notes || "N/A"],
-    ];
-=======
   const exportToExcel = async (form: FormData) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Form Details");
->>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
 
     // Add title row with styling
     worksheet.addRow(["Form Details"]).font = { bold: true, size: 14 };
@@ -300,7 +258,8 @@ export default function FormsPage() {
       "Form Size",
       `${form.formSize.width}" x ${form.formSize.length}"`,
     ]);
-    worksheet.addRow(["Max Pour Height", `${form.maxPourHeight}"`]);
+    worksheet.addRow(["Max Base/wall Pour height", `${form.maxPourHeight}"`]);
+    worksheet.addRow(["Max Riser Pour", `${form.maxRiserPour}"`]);
     worksheet.addRow([
       "Wall Thickness",
       Object.entries(form.wallThickness)
@@ -319,11 +278,15 @@ export default function FormsPage() {
       "Lid Thickness",
       Object.entries(form.lidThickness)
         .filter(([_, value]) => value)
-        .map(([key]) => `${key}"`)
+        .map(([key]) => {
+          if (key === "deck" || key === "clamshell") {
+            return key.charAt(0).toUpperCase() + key.slice(1);
+          }
+          return `${key}"`;
+        })
         .join(", "),
     ]);
-    worksheet.addRow(["Anti-Skid Base", form.antiSkidBase ? "Yes" : "No"]);
-    worksheet.addRow(["Anti-Skid Lid", form.antiSkidLid ? "Yes" : "No"]);
+    worksheet.addRow(["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"]);
     worksheet.addRow(["Clam Shell", form.clamShell ? "Yes" : "No"]);
     worksheet.addRow(["Engineered", form.engineered ? "Yes" : "No"]);
     worksheet.addRow(["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"]);
@@ -333,8 +296,10 @@ export default function FormsPage() {
     worksheet.getRow(2).font = { bold: true };
 
     // Auto-fit columns
-    worksheet.columns.forEach((column) => {
-      column.width = 20;
+    worksheet.columns.forEach((column: Partial<ExcelJS.Column>) => {
+      if (column.width !== undefined) {
+        column.width = 20;
+      }
     });
 
     // Generate the Excel file
@@ -699,7 +664,6 @@ export default function FormsPage() {
                     { header: "Base Thickness", key: "baseThickness" },
                     { header: "Lid Thickness", key: "lidThickness" },
                     { header: "Anti-Skid Base", key: "antiSkidBase" },
-                    { header: "Anti-Skid Lid", key: "antiSkidLid" },
                     { header: "Clam Shell", key: "clamShell" },
                     { header: "Max Pour Height", key: "maxPourHeight" },
                     { header: "Engineered", key: "engineered" },
@@ -728,20 +692,7 @@ export default function FormsPage() {
                           return `${key}"`;
                         })
                         .join(", "),
-<<<<<<< HEAD
-                      "Anti-skid Base": form.antiSkidBase ? "Yes" : "No",
-                      "Clam Shell": form.clamShell ? "Yes" : "No",
-                      Engineered: form.engineered ? "Yes" : "No",
-                      "Dynamic Blocks": form.dynamicBlocks ? "Yes" : "No",
-                      Notes: form.notes || "",
-                    }))
-                  );
-                  const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, "Forms");
-                  XLSX.writeFile(wb, "all_forms.xlsx");
-=======
                       antiSkidBase: form.antiSkidBase ? "Yes" : "No",
-                      antiSkidLid: form.antiSkidLid ? "Yes" : "No",
                       clamShell: form.clamShell ? "Yes" : "No",
                       maxPourHeight: form.maxPourHeight,
                       engineered: form.engineered ? "Yes" : "No",
@@ -761,8 +712,6 @@ export default function FormsPage() {
                   document.body.appendChild(a);
                   a.click();
                   window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
->>>>>>> 956df9a28a004b8ba5473995e2f4bf79fa133803
                 }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
               >
