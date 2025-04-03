@@ -1,12 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 transition-colors duration-300">
-      <Navbar />
       <main className="w-full max-w-5xl mx-auto px-4 flex-1 flex items-center justify-center">
         <div className="relative w-full">
           {/* Main content container */}

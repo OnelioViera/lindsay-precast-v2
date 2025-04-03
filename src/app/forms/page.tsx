@@ -20,6 +20,7 @@ interface FormData {
   wallThickness: {
     "6": boolean;
     "8": boolean;
+    "10": boolean;
   };
   baseThickness: {
     "6": boolean;
@@ -28,18 +29,23 @@ interface FormData {
     "12": boolean;
   };
   lidThickness: {
+    "4": boolean;
     "6": boolean;
     "8": boolean;
     "10": boolean;
-    "12": boolean;
+    antiSkid: boolean;
+    deck: boolean;
+    clamshell: boolean;
   };
   antiSkidBase: boolean;
-  antiSkidLid: boolean;
   clamShell: boolean;
   maxPourHeight: number;
+  maxRiserPour: number;
   engineered: boolean;
   dynamicBlocks: boolean;
   notes: string;
+  maxPorhithe: boolean;
+  maxRiserPourCheck: boolean;
 }
 
 export default function FormsPage() {
@@ -63,6 +69,7 @@ export default function FormsPage() {
     wallThickness: {
       "6": false,
       "8": false,
+      "10": false,
     },
     baseThickness: {
       "6": false,
@@ -71,18 +78,23 @@ export default function FormsPage() {
       "12": false,
     },
     lidThickness: {
+      "4": false,
       "6": false,
       "8": false,
       "10": false,
-      "12": false,
+      antiSkid: false,
+      deck: false,
+      clamshell: false,
     },
     antiSkidBase: false,
-    antiSkidLid: false,
     clamShell: false,
     maxPourHeight: 0,
+    maxRiserPour: 0,
     engineered: false,
     dynamicBlocks: false,
     notes: "",
+    maxPorhithe: false,
+    maxRiserPourCheck: false,
   });
 
   // Load saved forms from localStorage on component mount
@@ -141,7 +153,11 @@ export default function FormsPage() {
     }
 
     // Validate base thickness
-    if (!Object.values(formData.baseThickness).some((value) => value)) {
+    const hasBaseThickness =
+      Object.values(formData.baseThickness).some((value) => value === true) ||
+      formData.antiSkidBase ||
+      formData.clamShell;
+    if (!hasBaseThickness) {
       toast.error("Please select at least one base thickness option");
       return;
     }
@@ -178,6 +194,7 @@ export default function FormsPage() {
       wallThickness: {
         "6": false,
         "8": false,
+        "10": false,
       },
       baseThickness: {
         "6": false,
@@ -186,18 +203,23 @@ export default function FormsPage() {
         "12": false,
       },
       lidThickness: {
+        "4": false,
         "6": false,
         "8": false,
         "10": false,
-        "12": false,
+        antiSkid: false,
+        deck: false,
+        clamshell: false,
       },
       antiSkidBase: false,
-      antiSkidLid: false,
       clamShell: false,
       maxPourHeight: 0,
+      maxRiserPour: 0,
       engineered: false,
       dynamicBlocks: false,
       notes: "",
+      maxPorhithe: false,
+      maxRiserPourCheck: false,
     });
     setEditingFormId(null);
     setIsModalOpen(false);
@@ -226,7 +248,8 @@ export default function FormsPage() {
       ["Field", "Value"],
       ["Form Title", form.title],
       ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
-      ["Max Pour Height", `${form.maxPourHeight}"`],
+      ["Max Base/wall Pour height", `${form.maxPourHeight}"`],
+      ["Max Riser Pour", `${form.maxRiserPour}"`],
       [
         "Wall Thickness",
         Object.entries(form.wallThickness)
@@ -245,11 +268,15 @@ export default function FormsPage() {
         "Lid Thickness",
         Object.entries(form.lidThickness)
           .filter(([_, value]) => value)
-          .map(([key]) => `${key}"`)
+          .map(([key]) => {
+            if (key === "deck" || key === "clamshell") {
+              return key.charAt(0).toUpperCase() + key.slice(1);
+            }
+            return `${key}"`;
+          })
           .join(", "),
       ],
       ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
-      ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
       ["Clam Shell", form.clamShell ? "Yes" : "No"],
       ["Engineered", form.engineered ? "Yes" : "No"],
       ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
@@ -269,7 +296,8 @@ export default function FormsPage() {
       head: [["Field", "Value"]],
       body: [
         ["Form Size", `${form.formSize.width}" x ${form.formSize.length}"`],
-        ["Max Pour Height", `${form.maxPourHeight}"`],
+        ["Max Base/wall Pour height", `${form.maxPourHeight}"`],
+        ["Max Riser Pour", `${form.maxRiserPour}"`],
         [
           "Wall Thickness",
           Object.entries(form.wallThickness)
@@ -279,20 +307,29 @@ export default function FormsPage() {
         ],
         [
           "Base Thickness",
-          Object.entries(form.baseThickness)
-            .filter(([_, value]) => value)
-            .map(([key]) => `${key}"`)
+          [
+            ...Object.entries(form.baseThickness)
+              .filter(([_, value]) => value)
+              .map(([key]) => `${key}"`),
+            form.antiSkidBase ? "Anti-skid Base" : "",
+            form.clamShell ? "Clam Shell" : "",
+          ]
+            .filter(Boolean)
             .join(", "),
         ],
         [
           "Lid Thickness",
           Object.entries(form.lidThickness)
             .filter(([_, value]) => value)
-            .map(([key]) => `${key}"`)
+            .map(([key]) => {
+              if (key === "deck" || key === "clamshell") {
+                return key.charAt(0).toUpperCase() + key.slice(1);
+              }
+              return `${key}"`;
+            })
             .join(", "),
         ],
         ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
-        ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
         ["Clam Shell", form.clamShell ? "Yes" : "No"],
         ["Engineered", form.engineered ? "Yes" : "No"],
         ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
@@ -372,12 +409,22 @@ export default function FormsPage() {
                             </p>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
-                              Max Pour Height
-                            </p>
-                            <p className="text-gray-900">
-                              {form.maxPourHeight}"
-                            </p>
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Max Base/wall Pour height
+                              </p>
+                              <p className="text-gray-900 mb-2">
+                                {form.maxPourHeight}"
+                              </p>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2">
+                              <p className="text-sm font-medium text-gray-500">
+                                Max Riser Pour
+                              </p>
+                              <p className="text-gray-900">
+                                {form.maxRiserPour}"
+                              </p>
+                            </div>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
                             <p className="text-sm font-medium text-gray-500">
@@ -391,26 +438,41 @@ export default function FormsPage() {
                             </p>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
-                              Base Thickness
-                            </p>
-                            <p className="text-gray-900">
-                              {Object.entries(form.baseThickness)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => `${key}"`)
-                                .join(", ")}
-                            </p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
-                              Lid Thickness
-                            </p>
-                            <p className="text-gray-900">
-                              {Object.entries(form.lidThickness)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => `${key}"`)
-                                .join(", ")}
-                            </p>
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Base Thickness
+                              </p>
+                              <p className="text-gray-900 mb-2">
+                                {[
+                                  ...Object.entries(form.baseThickness)
+                                    .filter(([_, value]) => value)
+                                    .map(([key]) => `${key}"`),
+                                  form.antiSkidBase ? "Anti-skid Base" : "",
+                                  form.clamShell ? "Clam Shell" : "",
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </p>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2">
+                              <p className="text-sm font-medium text-gray-500">
+                                Lid Thickness
+                              </p>
+                              <p className="text-gray-900">
+                                {Object.entries(form.lidThickness)
+                                  .filter(([_, value]) => value)
+                                  .map(([key]) => {
+                                    if (key === "deck" || key === "clamshell") {
+                                      return (
+                                        key.charAt(0).toUpperCase() +
+                                        key.slice(1)
+                                      );
+                                    }
+                                    return `${key}"`;
+                                  })
+                                  .join(", ")}
+                              </p>
+                            </div>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
                             <p className="text-sm font-medium text-gray-500">
@@ -422,14 +484,6 @@ export default function FormsPage() {
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
                             <p className="text-sm font-medium text-gray-500">
-                              Anti-skid Lid
-                            </p>
-                            <p className="text-gray-900">
-                              {form.antiSkidLid ? "Yes" : "No"}
-                            </p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
                               Clam Shell
                             </p>
                             <p className="text-gray-900">
@@ -437,20 +491,22 @@ export default function FormsPage() {
                             </p>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
-                              Engineered
-                            </p>
-                            <p className="text-gray-900">
-                              {form.engineered ? "Yes" : "No"}
-                            </p>
-                          </div>
-                          <div className="bg-white p-2 rounded-lg border border-gray-100">
-                            <p className="text-sm font-medium text-gray-500">
-                              Dynamic Blocks
-                            </p>
-                            <p className="text-gray-900">
-                              {form.dynamicBlocks ? "Yes" : "No"}
-                            </p>
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Engineered
+                              </p>
+                              <p className="text-gray-900 mb-2">
+                                {form.engineered ? "Yes" : "No"}
+                              </p>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2">
+                              <p className="text-sm font-medium text-gray-500">
+                                Dynamic Blocks
+                              </p>
+                              <p className="text-gray-900">
+                                {form.dynamicBlocks ? "Yes" : "No"}
+                              </p>
+                            </div>
                           </div>
                         </div>
                         {form.notes && (
@@ -579,10 +635,14 @@ export default function FormsPage() {
                         .join(", "),
                       "Lid Thickness": Object.entries(form.lidThickness)
                         .filter(([_, value]) => value)
-                        .map(([key]) => `${key}"`)
+                        .map(([key]) => {
+                          if (key === "deck" || key === "clamshell") {
+                            return key.charAt(0).toUpperCase() + key.slice(1);
+                          }
+                          return `${key}"`;
+                        })
                         .join(", "),
                       "Anti-skid Base": form.antiSkidBase ? "Yes" : "No",
-                      "Anti-skid Lid": form.antiSkidLid ? "Yes" : "No",
                       "Clam Shell": form.clamShell ? "Yes" : "No",
                       Engineered: form.engineered ? "Yes" : "No",
                       "Dynamic Blocks": form.dynamicBlocks ? "Yes" : "No",
@@ -628,6 +688,8 @@ export default function FormsPage() {
                         `${form.formSize.width}" x ${form.formSize.length}"`,
                       ],
                       ["Max Pour Height", `${form.maxPourHeight}"`],
+                      ["Max Base/wall Pour height", `${form.maxPourHeight}"`],
+                      ["Max Riser Pour", `${form.maxRiserPour}"`],
                       [
                         "Wall Thickness",
                         Object.entries(form.wallThickness)
@@ -637,20 +699,29 @@ export default function FormsPage() {
                       ],
                       [
                         "Base Thickness",
-                        Object.entries(form.baseThickness)
-                          .filter(([_, value]) => value)
-                          .map(([key]) => `${key}"`)
+                        [
+                          ...Object.entries(form.baseThickness)
+                            .filter(([_, value]) => value)
+                            .map(([key]) => `${key}"`),
+                          form.antiSkidBase ? "Anti-skid Base" : "",
+                          form.clamShell ? "Clam Shell" : "",
+                        ]
+                          .filter(Boolean)
                           .join(", "),
                       ],
                       [
                         "Lid Thickness",
                         Object.entries(form.lidThickness)
                           .filter(([_, value]) => value)
-                          .map(([key]) => `${key}"`)
+                          .map(([key]) => {
+                            if (key === "deck" || key === "clamshell") {
+                              return key.charAt(0).toUpperCase() + key.slice(1);
+                            }
+                            return `${key}"`;
+                          })
                           .join(", "),
                       ],
                       ["Anti-skid Base", form.antiSkidBase ? "Yes" : "No"],
-                      ["Anti-skid Lid", form.antiSkidLid ? "Yes" : "No"],
                       ["Clam Shell", form.clamShell ? "Yes" : "No"],
                       ["Engineered", form.engineered ? "Yes" : "No"],
                       ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
@@ -834,6 +905,200 @@ export default function FormsPage() {
                       8"
                     </label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="wall10"
+                      checked={formData.wallThickness["10"]}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          wallThickness: {
+                            ...formData.wallThickness,
+                            "10": e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="wall10"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      10"
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Lid Thickness (inches) <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="lid4"
+                      checked={formData.lidThickness["4"]}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            "4": e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="lid4"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      4"
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="lid6"
+                      checked={formData.lidThickness["6"]}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            "6": e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="lid6"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      6"
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="lid8"
+                      checked={formData.lidThickness["8"]}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            "8": e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="lid8"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      8"
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="lid10"
+                      checked={formData.lidThickness["10"]}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            "10": e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="lid10"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      10"
+                    </label>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="antiSkidLid"
+                      checked={formData.lidThickness.antiSkid}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            antiSkid: e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="antiSkidLid"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      Anti-skid Lid
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="deck"
+                      checked={formData.lidThickness.deck}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            deck: e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="deck"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      Deck
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="clamshell"
+                      checked={formData.lidThickness.clamshell}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          lidThickness: {
+                            ...formData.lidThickness,
+                            clamshell: e.target.checked,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="clamshell"
+                      className="text-sm font-medium text-gray-300"
+                    >
+                      Clamshell
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -935,169 +1200,46 @@ export default function FormsPage() {
                       12"
                     </label>
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Lid Thickness (inches) <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      id="lid6"
-                      checked={formData.lidThickness["6"]}
+                      id="antiSkidBase"
+                      checked={formData.antiSkidBase}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          lidThickness: {
-                            ...formData.lidThickness,
-                            "6": e.target.checked,
-                          },
+                          antiSkidBase: e.target.checked,
                         })
                       }
                       className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
                     />
                     <label
-                      htmlFor="lid6"
+                      htmlFor="antiSkidBase"
                       className="text-sm font-medium text-gray-300"
                     >
-                      6"
+                      Anti-skid Base
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      id="lid8"
-                      checked={formData.lidThickness["8"]}
+                      id="clamShell"
+                      checked={formData.clamShell}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          lidThickness: {
-                            ...formData.lidThickness,
-                            "8": e.target.checked,
-                          },
+                          clamShell: e.target.checked,
                         })
                       }
                       className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
                     />
                     <label
-                      htmlFor="lid8"
+                      htmlFor="clamShell"
                       className="text-sm font-medium text-gray-300"
                     >
-                      8"
+                      Clam Shell
                     </label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="lid10"
-                      checked={formData.lidThickness["10"]}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          lidThickness: {
-                            ...formData.lidThickness,
-                            "10": e.target.checked,
-                          },
-                        })
-                      }
-                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor="lid10"
-                      className="text-sm font-medium text-gray-300"
-                    >
-                      10"
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="lid12"
-                      checked={formData.lidThickness["12"]}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          lidThickness: {
-                            ...formData.lidThickness,
-                            "12": e.target.checked,
-                          },
-                        })
-                      }
-                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor="lid12"
-                      className="text-sm font-medium text-gray-300"
-                    >
-                      12"
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="antiSkidBase"
-                    checked={formData.antiSkidBase}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        antiSkidBase: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="antiSkidBase"
-                    className="text-sm font-medium text-gray-300"
-                  >
-                    Anti-skid Base
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="antiSkidLid"
-                    checked={formData.antiSkidLid}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        antiSkidLid: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="antiSkidLid"
-                    className="text-sm font-medium text-gray-300"
-                  >
-                    Anti-skid Lid
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="clamShell"
-                    checked={formData.clamShell}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        clamShell: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="clamShell"
-                    className="text-sm font-medium text-gray-300"
-                  >
-                    Clam Shell
-                  </label>
                 </div>
               </div>
 
@@ -1106,7 +1248,7 @@ export default function FormsPage() {
                   htmlFor="maxPourHeight"
                   className="block text-sm font-medium text-gray-300 mb-1"
                 >
-                  Max Pour Height (inches){" "}
+                  Max Base/wall Pour height (inches){" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1119,6 +1261,29 @@ export default function FormsPage() {
                       maxPourHeight: e.target.value
                         ? Number(e.target.value)
                         : 0,
+                    })
+                  }
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="maxRiserPour"
+                  className="block text-sm font-medium text-gray-300 mb-1"
+                >
+                  Max Riser Pour (inches){" "}
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="maxRiserPour"
+                  value={formData.maxRiserPour || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      maxRiserPour: e.target.value ? Number(e.target.value) : 0,
                     })
                   }
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

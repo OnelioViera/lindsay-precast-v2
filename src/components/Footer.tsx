@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 
-export default function Footer() {
+interface FooterProps {
+  children?: React.ReactNode;
+}
+
+export default function Footer({ children }: FooterProps) {
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-gray-900/80 backdrop-blur-sm border-t border-gray-700/50 py-4">
       <div className="max-w-[1920px] mx-auto px-8 sm:px-12 lg:px-16">
@@ -11,6 +15,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Lindsay Precast. All rights reserved.
           </div>
           <div className="flex items-center space-x-4">
+            {children}
             <Link
               href="/forms"
               className="text-gray-400 hover:text-white transition-colors text-sm"
