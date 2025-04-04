@@ -17,6 +17,10 @@ interface SymonsData {
     title: string;
     url: string;
   }[];
+  pdfFile?: {
+    name: string;
+    url: string;
+  };
 }
 
 export default function SymonsPage() {
@@ -27,6 +31,7 @@ export default function SymonsPage() {
     title: "",
     description: "",
     links: [],
+    pdfFile: undefined,
   });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     isOpen: boolean;
@@ -64,6 +69,21 @@ export default function SymonsPage() {
     }
   }, [savedSymons]);
 
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create a URL for the file
+      const fileUrl = URL.createObjectURL(file);
+      setSymonData((prev) => ({
+        ...prev,
+        pdfFile: {
+          name: file.name,
+          url: fileUrl,
+        },
+      }));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -95,6 +115,7 @@ export default function SymonsPage() {
       title: "",
       description: "",
       links: [],
+      pdfFile: undefined,
     });
     setEditingSymonId(null);
     setIsModalOpen(false);
@@ -202,7 +223,37 @@ export default function SymonsPage() {
                           </button>
                         </div>
                       </div>
-                      <p className="text-gray-300 mb-4">{symon.description}</p>
+                      {symon.description && (
+                        <p className="text-gray-300 mb-4">
+                          {symon.description}
+                        </p>
+                      )}
+                      {symon.pdfFile && (
+                        <div className="mb-4">
+                          <a
+                            href={symon.pdfFile.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:text-blue-300 flex items-center"
+                          >
+                            <svg
+                              className="w-5 h-5 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                            View PDF: {symon.pdfFile.name}
+                          </a>
+                        </div>
+                      )}
                       {symon.links.length > 0 && (
                         <div className="mt-4">
                           <h4 className="text-sm font-semibold text-gray-400 mb-2">
@@ -248,6 +299,7 @@ export default function SymonsPage() {
                 title: "",
                 description: "",
                 links: [],
+                pdfFile: undefined,
               });
               setEditingSymonId(null);
               setIsModalOpen(true);
@@ -351,10 +403,10 @@ export default function SymonsPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">
-                {editingSymonId ? "Edit Symons" : "Create New Symons"}
+                {editingSymonId ? "Edit Symon" : "Create New Symon"}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -400,6 +452,23 @@ export default function SymonsPage() {
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  PDF File
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handlePdfUpload}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {symonData.pdfFile && (
+                  <div className="mt-2 text-sm text-gray-300">
+                    Selected file: {symonData.pdfFile.name}
+                  </div>
+                )}
               </div>
 
               <div>
