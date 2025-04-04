@@ -36,6 +36,8 @@ interface FormData {
     antiSkid: boolean;
     deck: boolean;
     clamshell: boolean;
+    trafficRating: boolean | null;
+    grate: boolean | null;
   };
   antiSkidBase: boolean;
   clamShell: boolean;
@@ -87,6 +89,8 @@ export default function FormsPage() {
       antiSkid: false,
       deck: false,
       clamshell: false,
+      trafficRating: null,
+      grate: null,
     },
     antiSkidBase: false,
     clamShell: false,
@@ -214,6 +218,8 @@ export default function FormsPage() {
         antiSkid: false,
         deck: false,
         clamshell: false,
+        trafficRating: null,
+        grate: null,
       },
       antiSkidBase: false,
       clamShell: false,
@@ -1196,108 +1202,109 @@ export default function FormsPage() {
                     </label>
                   </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Traffic Rating
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="trafficRatingYes"
-                        name="trafficRating"
-                        checked={formData.trafficRating === true}
-                        onChange={(e) => {
-                          console.log("Setting Traffic Rating to Yes");
-                          setFormData((prev) => ({
-                            ...prev,
-                            trafficRating: true,
-                          }));
-                        }}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
-                      />
-                      <label
-                        htmlFor="trafficRatingYes"
-                        className="text-sm font-medium text-gray-300"
-                      >
-                        Yes
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="trafficRatingNo"
-                        name="trafficRating"
-                        checked={formData.trafficRating === false}
-                        onChange={(e) => {
-                          console.log("Setting Traffic Rating to No");
-                          setFormData((prev) => ({
-                            ...prev,
-                            trafficRating: false,
-                          }));
-                        }}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
-                      />
-                      <label
-                        htmlFor="trafficRatingNo"
-                        className="text-sm font-medium text-gray-300"
-                      >
-                        No
-                      </label>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Traffic Rating
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="trafficRatingYes"
+                          name="trafficRating"
+                          checked={formData.trafficRating === true}
+                          onChange={(e) => {
+                            console.log("Setting Traffic Rating to Yes");
+                            setFormData((prev) => ({
+                              ...prev,
+                              trafficRating:
+                                prev.trafficRating === true ? null : true,
+                            }));
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="trafficRatingYes"
+                          className="text-sm font-medium text-gray-300"
+                        >
+                          Yes
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="trafficRatingNo"
+                          name="trafficRating"
+                          checked={formData.trafficRating === false}
+                          onChange={(e) => {
+                            console.log("Setting Traffic Rating to No");
+                            setFormData((prev) => ({
+                              ...prev,
+                              trafficRating:
+                                prev.trafficRating === false ? null : false,
+                            }));
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="trafficRatingNo"
+                          className="text-sm font-medium text-gray-300"
+                        >
+                          No
+                        </label>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Grate
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="grateYes"
-                        name="grate"
-                        checked={formData.grate === true}
-                        onChange={(e) => {
-                          console.log("Setting Grate to Yes");
-                          setFormData((prev) => ({
-                            ...prev,
-                            grate: true,
-                          }));
-                        }}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
-                      />
-                      <label
-                        htmlFor="grateYes"
-                        className="text-sm font-medium text-gray-300"
-                      >
-                        Yes
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="grateNo"
-                        name="grate"
-                        checked={formData.grate === false}
-                        onChange={(e) => {
-                          console.log("Setting Grate to No");
-                          setFormData((prev) => ({
-                            ...prev,
-                            grate: false,
-                          }));
-                        }}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
-                      />
-                      <label
-                        htmlFor="grateNo"
-                        className="text-sm font-medium text-gray-300"
-                      >
-                        No
-                      </label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Grate
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="grateYes"
+                          name="grate"
+                          checked={formData.grate === true}
+                          onChange={(e) => {
+                            console.log("Setting Grate to Yes");
+                            setFormData((prev) => ({
+                              ...prev,
+                              grate: prev.grate === true ? null : true,
+                            }));
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="grateYes"
+                          className="text-sm font-medium text-gray-300"
+                        >
+                          Yes
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="grateNo"
+                          name="grate"
+                          checked={formData.grate === false}
+                          onChange={(e) => {
+                            console.log("Setting Grate to No");
+                            setFormData((prev) => ({
+                              ...prev,
+                              grate: prev.grate === false ? null : false,
+                            }));
+                          }}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="grateNo"
+                          className="text-sm font-medium text-gray-300"
+                        >
+                          No
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
