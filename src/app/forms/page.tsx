@@ -43,6 +43,8 @@ interface FormData {
   maxRiserPour: number;
   engineered: boolean;
   dynamicBlocks: boolean;
+  trafficRating: boolean | null;
+  grate: boolean | null;
   notes: string;
   maxPorhithe: boolean;
   maxRiserPourCheck: boolean;
@@ -92,6 +94,8 @@ export default function FormsPage() {
     maxRiserPour: 0,
     engineered: false,
     dynamicBlocks: false,
+    trafficRating: null,
+    grate: null,
     notes: "",
     maxPorhithe: false,
     maxRiserPourCheck: false,
@@ -217,6 +221,8 @@ export default function FormsPage() {
       maxRiserPour: 0,
       engineered: false,
       dynamicBlocks: false,
+      trafficRating: null,
+      grate: null,
       notes: "",
       maxPorhithe: false,
       maxRiserPourCheck: false,
@@ -290,6 +296,8 @@ export default function FormsPage() {
     worksheet.addRow(["Clam Shell", form.clamShell ? "Yes" : "No"]);
     worksheet.addRow(["Engineered", form.engineered ? "Yes" : "No"]);
     worksheet.addRow(["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"]);
+    worksheet.addRow(["Traffic Rating", form.trafficRating ? "Yes" : "No"]);
+    worksheet.addRow(["Grate", form.grate ? "Yes" : "No"]);
     worksheet.addRow(["Notes", form.notes || "N/A"]);
 
     // Style the header row
@@ -359,6 +367,8 @@ export default function FormsPage() {
         ["Clam Shell", form.clamShell ? "Yes" : "No"],
         ["Engineered", form.engineered ? "Yes" : "No"],
         ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
+        ["Traffic Rating", form.trafficRating ? "Yes" : "No"],
+        ["Grate", form.grate ? "Yes" : "No"],
       ],
       theme: "grid",
       headStyles: { fillColor: [59, 130, 246] },
@@ -542,6 +552,32 @@ export default function FormsPage() {
                               </p>
                             </div>
                           </div>
+                          <div className="bg-white p-2 rounded-lg border border-gray-100">
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">
+                                Traffic Rating
+                              </p>
+                              <p className="text-gray-900 mb-2">
+                                {form.trafficRating === true
+                                  ? "Yes"
+                                  : form.trafficRating === false
+                                  ? "No"
+                                  : ""}
+                              </p>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2">
+                              <p className="text-sm font-medium text-gray-500">
+                                Grate
+                              </p>
+                              <p className="text-gray-900">
+                                {form.grate === true
+                                  ? "Yes"
+                                  : form.grate === false
+                                  ? "No"
+                                  : ""}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                         {form.notes && (
                           <div className="mt-2 bg-white p-2 rounded-lg border border-gray-100">
@@ -668,6 +704,8 @@ export default function FormsPage() {
                     { header: "Max Pour Height", key: "maxPourHeight" },
                     { header: "Engineered", key: "engineered" },
                     { header: "Dynamic Blocks", key: "dynamicBlocks" },
+                    { header: "Traffic Rating", key: "trafficRating" },
+                    { header: "Grate", key: "grate" },
                     { header: "Notes", key: "notes" },
                   ];
 
@@ -697,6 +735,8 @@ export default function FormsPage() {
                       maxPourHeight: form.maxPourHeight,
                       engineered: form.engineered ? "Yes" : "No",
                       dynamicBlocks: form.dynamicBlocks ? "Yes" : "No",
+                      trafficRating: form.trafficRating ? "Yes" : "No",
+                      grate: form.grate ? "Yes" : "No",
                       notes: form.notes,
                     });
                   });
@@ -773,6 +813,8 @@ export default function FormsPage() {
                       ["Clam Shell", form.clamShell ? "Yes" : "No"],
                       ["Engineered", form.engineered ? "Yes" : "No"],
                       ["Dynamic Blocks", form.dynamicBlocks ? "Yes" : "No"],
+                      ["Traffic Rating", form.trafficRating ? "Yes" : "No"],
+                      ["Grate", form.grate ? "Yes" : "No"],
                       form.notes ? ["Notes", form.notes] : [],
                       ["", ""], // Empty row for spacing between forms
                     ].filter((row) => row.length > 0)
@@ -1152,6 +1194,111 @@ export default function FormsPage() {
                     >
                       Clamshell
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Traffic Rating
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="trafficRatingYes"
+                        name="trafficRating"
+                        checked={formData.trafficRating === true}
+                        onChange={(e) => {
+                          console.log("Setting Traffic Rating to Yes");
+                          setFormData((prev) => ({
+                            ...prev,
+                            trafficRating: true,
+                          }));
+                        }}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="trafficRatingYes"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        Yes
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="trafficRatingNo"
+                        name="trafficRating"
+                        checked={formData.trafficRating === false}
+                        onChange={(e) => {
+                          console.log("Setting Traffic Rating to No");
+                          setFormData((prev) => ({
+                            ...prev,
+                            trafficRating: false,
+                          }));
+                        }}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="trafficRatingNo"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        No
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Grate
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="grateYes"
+                        name="grate"
+                        checked={formData.grate === true}
+                        onChange={(e) => {
+                          console.log("Setting Grate to Yes");
+                          setFormData((prev) => ({
+                            ...prev,
+                            grate: true,
+                          }));
+                        }}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="grateYes"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        Yes
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="grateNo"
+                        name="grate"
+                        checked={formData.grate === false}
+                        onChange={(e) => {
+                          console.log("Setting Grate to No");
+                          setFormData((prev) => ({
+                            ...prev,
+                            grate: false,
+                          }));
+                        }}
+                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="grateNo"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        No
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

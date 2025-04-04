@@ -25,8 +25,6 @@ export const metadata: Metadata = {
     apple: "/lindsay-logo.svg",
   },
   manifest: "/manifest.json",
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

@@ -153,6 +153,7 @@ export default function SymonsPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
+      <Navbar />
       <main className="w-full max-w-[1920px] mx-auto px-8 sm:px-12 lg:px-16 pb-24 mt-16">
         <div className="flex flex-col items-center space-y-6 sm:space-y-8">
           {/* Page title */}
