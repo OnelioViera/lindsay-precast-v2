@@ -284,7 +284,6 @@ export default function TypesFormHolesPage() {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
     const summaryData = {
       foam: savedForms
         .filter((form) => form.type === "foam")
@@ -348,66 +347,196 @@ export default function TypesFormHolesPage() {
         ),
     };
 
-    // Add title
-    doc.setFontSize(20);
-    doc.text("Hole Summary Report", 14, 15);
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Add company header
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Lindsay Precast", pageWidth / 2, yPos, { align: "center" });
+    yPos += 10;
+
+    // Add order form title
+    doc.setFontSize(14);
+    doc.text("Hole Order Sheet", pageWidth / 2, yPos, { align: "center" });
+    yPos += 10;
 
     // Add date
     doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Generated on: ${new Date().toLocaleDateString()}`,
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 20;
 
     // Prepare data for the table
-    const tableData: string[][] = [];
+    const tableData = [];
+    let foamTotal = 0;
+    let formerTotal = 0;
 
-    // Add Foam data
+    // Add Foam data first (without total)
     Object.entries(summaryData.foam).forEach(([wallThickness, data]) => {
-      // Add wall thickness row
-      tableData.push(["Foam", wallThickness, "", ""]);
-
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
-        tableData.push(["", "", `Round ${size}`, count.toString()]);
+        tableData.push({
+          type: "Foam",
+          wallThickness,
+          holeType: `Round ${size}`,
+          quantity: count,
+          description: "",
+        });
+        foamTotal += count;
       });
 
       // Add skewed holes
       Object.entries(data.skewedHoles).forEach(([size, count]) => {
-        tableData.push(["", "", `Skewed ${size}`, count.toString()]);
+        tableData.push({
+          type: "Foam",
+          wallThickness,
+          holeType: `Skewed ${size}`,
+          quantity: count,
+          description: "",
+        });
+        foamTotal += count;
       });
     });
 
-    // Add Former data
+    // Add Former data second (without total)
     Object.entries(summaryData.former).forEach(([wallThickness, data]) => {
-      // Add wall thickness row
-      tableData.push(["Former", wallThickness, "", ""]);
-
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
-        tableData.push(["", "", `Round ${size}`, count.toString()]);
+        tableData.push({
+          type: "Former",
+          wallThickness,
+          holeType: `Round ${size}`,
+          quantity: count,
+          description: "",
+        });
+        formerTotal += count;
       });
 
       // Add skewed holes
       Object.entries(data.skewedHoles).forEach(([size, count]) => {
-        tableData.push(["", "", `Skewed ${size}`, count.toString()]);
+        tableData.push({
+          type: "Former",
+          wallThickness,
+          holeType: `Skewed ${size}`,
+          quantity: count,
+          description: "",
+        });
+        formerTotal += count;
       });
     });
 
-    // Add table
+    // Add both totals at the bottom
+    if (foamTotal > 0) {
+      tableData.push({
+        type: "Foam",
+        wallThickness: "",
+        holeType: "TOTAL",
+        quantity: foamTotal,
+        description: "",
+      });
+    }
+
+    if (formerTotal > 0) {
+      tableData.push({
+        type: "Former",
+        wallThickness: "",
+        holeType: "TOTAL",
+        quantity: formerTotal,
+        description: "",
+      });
+    }
+
+    // Create the table
     autoTable(doc, {
-      startY: 35,
-      head: [["Type", "Wall Thickness", "Hole Type", "Count"]],
-      body: tableData,
+      startY: yPos,
+      head: [["Type", "Wall Thickness", "Hole Type", "Quantity", "Description"]],
+      body: tableData.map((row) => {
+        // Check if this is a total row
+        const isTotal = row.holeType === "TOTAL";
+        
+        return [
+          {
+            content: row.type,
+            styles: isTotal ? {
+              textColor: [0, 0, 0],
+              fontStyle: "bold",
+              fontSize: 14
+            } : undefined
+          },
+          row.wallThickness,
+          {
+            content: row.holeType,
+            styles: isTotal ? {
+              textColor: [0, 0, 0],
+              fontStyle: "bold",
+              fontSize: 14
+            } : undefined
+          },
+          {
+            content: row.quantity,
+            styles: {
+              textColor: [0, 0, 0],
+              fontStyle: "bold",
+              fontSize: isTotal ? 14 : undefined
+            }
+          },
+          row.description,
+        ];
+      }),
       theme: "grid",
-      headStyles: { fillColor: [41, 41, 41] },
-      styles: { fontSize: 10 },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: 255,
+        fontStyle: "bold",
+        fontSize: 10,
+      },
+      bodyStyles: {
+        fontSize: 10,
+      },
       columnStyles: {
         0: { cellWidth: 30 },
         1: { cellWidth: 40 },
         2: { cellWidth: 50 },
-        3: { cellWidth: 20 },
+        3: { cellWidth: 30, halign: "center" },
+        4: { cellWidth: 40 },
+      },
+      styles: {
+        cellPadding: 5,
+        lineColor: [41, 128, 185],
+        lineWidth: 0.5,
+      },
+      didDrawCell: (data: any) => {
+        // Style the total rows
+        if (data.row.index === tableData.length - 1 || 
+            (foamTotal > 0 && formerTotal > 0 && data.row.index === tableData.length - 2)) {
+          // Set background color
+          data.cell.styles.fillColor = [255, 255, 255];
+          // Add a border
+          data.doc.setDrawColor(41, 128, 185);
+          data.doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, "S");
+        }
       },
     });
 
-    doc.save("hole_summary.pdf");
+    // Add footer
+    const finalY = (doc as any).lastAutoTable.finalY || yPos;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text(
+      "Please review quantities and descriptions",
+      pageWidth / 2,
+      finalY + 20,
+      { align: "center" }
+    );
+
+    doc.save("hole_order_sheet.pdf");
   };
 
   const getHoleSummary = () => {
