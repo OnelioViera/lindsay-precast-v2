@@ -69,6 +69,16 @@ export default function Navbar() {
               >
                 Engineering
               </Link>
+              <Link
+                href="/types-form-holes"
+                className={`text-sm font-medium transition-colors duration-200 ${
+                  pathname === "/types-form-holes"
+                    ? "text-white"
+                    : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Holes
+              </Link>
             </div>
           </div>
 
@@ -148,6 +158,16 @@ export default function Navbar() {
               }`}
             >
               Engineering
+            </Link>
+            <Link
+              href="/types-form-holes"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                pathname === "/types-form-holes"
+                  ? "text-white bg-gray-900"
+                  : "text-gray-300 hover:text-white hover:bg-gray-700"
+              }`}
+            >
+              Holes
             </Link>
           </div>
         </div>
