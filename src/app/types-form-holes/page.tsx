@@ -31,6 +31,13 @@ export default function TypesFormHolesPage() {
     jobName: "",
     jobNumber: "",
   });
+  const [extraHoles, setExtraHoles] = useState<Record<string, number>>(() => {
+    if (typeof window !== "undefined") {
+      const savedExtraHoles = localStorage.getItem("extraHoles");
+      return savedExtraHoles ? JSON.parse(savedExtraHoles) : {};
+    }
+    return {};
+  });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     isOpen: boolean;
     formId: string | null;
@@ -66,6 +73,13 @@ export default function TypesFormHolesPage() {
       console.error("Error saving forms:", error);
     }
   }, [savedForms]);
+
+  // Save extra holes to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("extraHoles", JSON.stringify(extraHoles));
+    }
+  }, [extraHoles]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,12 +155,18 @@ export default function TypesFormHolesPage() {
             }
             if (form.holeDiameter) {
               const holeKey = `${form.holeDiameter}"`;
+              const extraKey = `foam-${wallKey}-round-${holeKey}`;
+              const extraCount = extraHoles[extraKey] || 0;
               acc[wallKey].roundHoles[holeKey] =
-                (acc[wallKey].roundHoles[holeKey] || 0) + 1;
+                (acc[wallKey].roundHoles[holeKey] || 0) + 1 + extraCount;
             }
             if (form.skewedHoles) {
+              const extraKey = `foam-${wallKey}-skewed-${form.skewedHoles}`;
+              const extraCount = extraHoles[extraKey] || 0;
               acc[wallKey].skewedHoles[form.skewedHoles] =
-                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) + 1;
+                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) +
+                1 +
+                extraCount;
             }
             return acc;
           },
@@ -171,12 +191,18 @@ export default function TypesFormHolesPage() {
             }
             if (form.holeDiameter) {
               const holeKey = `${form.holeDiameter}"`;
+              const extraKey = `former-${wallKey}-round-${holeKey}`;
+              const extraCount = extraHoles[extraKey] || 0;
               acc[wallKey].roundHoles[holeKey] =
-                (acc[wallKey].roundHoles[holeKey] || 0) + 1;
+                (acc[wallKey].roundHoles[holeKey] || 0) + 1 + extraCount;
             }
             if (form.skewedHoles) {
+              const extraKey = `former-${wallKey}-skewed-${form.skewedHoles}`;
+              const extraCount = extraHoles[extraKey] || 0;
               acc[wallKey].skewedHoles[form.skewedHoles] =
-                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) + 1;
+                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) +
+                1 +
+                extraCount;
             }
             return acc;
           },
@@ -195,13 +221,22 @@ export default function TypesFormHolesPage() {
 
     // Prepare data for the worksheet
     const worksheetData = [
-      ["Hole Summary Report", "", "", ""],
+      // Header
+      ["Lindsay Precast", "", "", ""],
+      ["Hole Order Sheet", "", "", ""],
       ["Generated on:", new Date().toLocaleDateString(), "", ""],
       ["", "", "", ""],
-      ["Type", "Wall Thickness", "Hole Type", "Count"],
+      // Job Information
+      ["Job Information", "", "", ""],
+      ["Job Name:", jobInfo.jobName || "Not specified", "", ""],
+      ["Job Number:", jobInfo.jobNumber || "Not specified", "", ""],
+      ["", "", "", ""],
+      // Column Headers
+      ["Type", "Wall Thickness", "Hole Type", "Quantity"],
     ];
 
     // Add Foam data
+    let foamTotal = 0;
     Object.entries(summaryData.foam).forEach(([wallThickness, data]) => {
       // Add wall thickness header
       worksheetData.push(["Foam", wallThickness, "", ""]);
@@ -209,11 +244,13 @@ export default function TypesFormHolesPage() {
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
         worksheetData.push(["", "", `Round ${size}`, count.toString()]);
+        foamTotal += count;
       });
 
       // Add skewed holes
       Object.entries(data.skewedHoles).forEach(([size, count]) => {
         worksheetData.push(["", "", `Skewed ${size}`, count.toString()]);
+        foamTotal += count;
       });
 
       // Add empty row for spacing
@@ -221,6 +258,7 @@ export default function TypesFormHolesPage() {
     });
 
     // Add Former data
+    let formerTotal = 0;
     Object.entries(summaryData.former).forEach(([wallThickness, data]) => {
       // Add wall thickness header
       worksheetData.push(["Former", wallThickness, "", ""]);
@@ -228,16 +266,26 @@ export default function TypesFormHolesPage() {
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
         worksheetData.push(["", "", `Round ${size}`, count.toString()]);
+        formerTotal += count;
       });
 
       // Add skewed holes
       Object.entries(data.skewedHoles).forEach(([size, count]) => {
         worksheetData.push(["", "", `Skewed ${size}`, count.toString()]);
+        formerTotal += count;
       });
 
       // Add empty row for spacing
       worksheetData.push(["", "", "", ""]);
     });
+
+    // Add totals
+    if (foamTotal > 0) {
+      worksheetData.push(["Foam", "TOTAL", "", foamTotal.toString()]);
+    }
+    if (formerTotal > 0) {
+      worksheetData.push(["Former", "TOTAL", "", formerTotal.toString()]);
+    }
 
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
@@ -246,10 +294,10 @@ export default function TypesFormHolesPage() {
       { wch: 15 }, // Type
       { wch: 20 }, // Wall Thickness
       { wch: 20 }, // Hole Type
-      { wch: 10 }, // Count
+      { wch: 15 }, // Quantity
     ];
 
-    // Add some basic styling
+    // Add styling
     const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -257,27 +305,105 @@ export default function TypesFormHolesPage() {
         const cell_ref = XLSX.utils.encode_cell(cell_address);
         if (!worksheet[cell_ref]) continue;
 
-        // Style headers
-        if (R === 0 || R === 3) {
+        // Style main header
+        if (R === 0) {
           worksheet[cell_ref].s = {
-            font: { bold: true },
-            fill: { fgColor: { rgb: "E6E6E6" } },
+            font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
+            alignment: { horizontal: "center" },
+            fill: { fgColor: { rgb: "1E3A8A" } }, // Dark blue
+          };
+        }
+        // Style subheader
+        else if (R === 1) {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
+            alignment: { horizontal: "center" },
+            fill: { fgColor: { rgb: "2563EB" } }, // Blue
+          };
+        }
+        // Style date row
+        else if (R === 2) {
+          worksheet[cell_ref].s = {
+            font: { sz: 12, color: { rgb: "1E3A8A" } },
+            alignment: { horizontal: "center" },
+            fill: { fgColor: { rgb: "EFF6FF" } }, // Light blue
+          };
+        }
+        // Style job information headers
+        else if (R === 4) {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "2563EB" } }, // Blue
+          };
+        }
+        // Style job information values
+        else if (R === 5 || R === 6) {
+          worksheet[cell_ref].s = {
+            font: { sz: 12, color: { rgb: "1E3A8A" } },
+            fill: { fgColor: { rgb: "EFF6FF" } }, // Light blue
+          };
+        }
+        // Style column headers
+        else if (R === 8) {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "2563EB" } }, // Blue
             alignment: { horizontal: "center" },
           };
         }
-
         // Style wall thickness rows
-        if (R > 3 && C === 1 && worksheet[cell_ref].v) {
+        else if (R > 8 && C === 1 && worksheet[cell_ref].v) {
           worksheet[cell_ref].s = {
-            font: { bold: true },
-            fill: { fgColor: { rgb: "F2F2F2" } },
+            font: { bold: true, sz: 12, color: { rgb: "1E3A8A" } },
+            fill: { fgColor: { rgb: "EFF6FF" } }, // Light blue
           };
         }
-
         // Style hole type rows
-        if (R > 3 && C === 2 && worksheet[cell_ref].v) {
+        else if (R > 8 && C === 2 && worksheet[cell_ref].v) {
           worksheet[cell_ref].s = {
+            font: { sz: 12, color: { rgb: "1E3A8A" } },
             alignment: { indent: 1 },
+            fill: { fgColor: { rgb: "FFFFFF" } },
+          };
+        }
+        // Style quantity cells
+        else if (R > 8 && C === 3 && worksheet[cell_ref].v) {
+          worksheet[cell_ref].s = {
+            font: { sz: 12, color: { rgb: "1E3A8A" } },
+            alignment: { horizontal: "center" },
+            fill: { fgColor: { rgb: "FFFFFF" } },
+          };
+        }
+        // Style total rows
+        else if (R > 8 && worksheet[cell_ref].v === "TOTAL") {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "1E3A8A" } }, // Dark blue
+          };
+          // Style the quantity in total rows
+          const quantityCell = XLSX.utils.encode_cell({ c: 3, r: R });
+          if (worksheet[quantityCell]) {
+            worksheet[quantityCell].s = {
+              font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "1E3A8A" } }, // Dark blue
+              alignment: { horizontal: "center" },
+            };
+          }
+        }
+        // Style Foam rows
+        else if (R > 8 && C === 0 && worksheet[cell_ref].v === "Foam") {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "DC2626" } }, // Red
+            alignment: { horizontal: "center" },
+          };
+        }
+        // Style Former rows
+        else if (R > 8 && C === 0 && worksheet[cell_ref].v === "Former") {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "059669" } }, // Green
+            alignment: { horizontal: "center" },
           };
         }
       }
@@ -288,69 +414,6 @@ export default function TypesFormHolesPage() {
   };
 
   const exportToPDF = () => {
-    const summaryData = {
-      foam: savedForms
-        .filter((form) => form.type === "foam")
-        .reduce(
-          (acc, form) => {
-            const wallKey = `${form.wallThickness} inch wall`;
-            if (!acc[wallKey]) {
-              acc[wallKey] = {
-                roundHoles: {} as Record<string, number>,
-                skewedHoles: {} as Record<string, number>,
-              };
-            }
-            if (form.holeDiameter) {
-              const holeKey = `${form.holeDiameter}"`;
-              acc[wallKey].roundHoles[holeKey] =
-                (acc[wallKey].roundHoles[holeKey] || 0) + 1;
-            }
-            if (form.skewedHoles) {
-              acc[wallKey].skewedHoles[form.skewedHoles] =
-                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) + 1;
-            }
-            return acc;
-          },
-          {} as Record<
-            string,
-            {
-              roundHoles: Record<string, number>;
-              skewedHoles: Record<string, number>;
-            }
-          >
-        ),
-      former: savedForms
-        .filter((form) => form.type === "former")
-        .reduce(
-          (acc, form) => {
-            const wallKey = `${form.wallThickness} inch wall`;
-            if (!acc[wallKey]) {
-              acc[wallKey] = {
-                roundHoles: {} as Record<string, number>,
-                skewedHoles: {} as Record<string, number>,
-              };
-            }
-            if (form.holeDiameter) {
-              const holeKey = `${form.holeDiameter}"`;
-              acc[wallKey].roundHoles[holeKey] =
-                (acc[wallKey].roundHoles[holeKey] || 0) + 1;
-            }
-            if (form.skewedHoles) {
-              acc[wallKey].skewedHoles[form.skewedHoles] =
-                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) + 1;
-            }
-            return acc;
-          },
-          {} as Record<
-            string,
-            {
-              roundHoles: Record<string, number>;
-              skewedHoles: Record<string, number>;
-            }
-          >
-        ),
-    };
-
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     let yPos = 20;
@@ -402,7 +465,44 @@ export default function TypesFormHolesPage() {
     let formerTotal = 0;
 
     // Add Foam data first (without total)
-    Object.entries(summaryData.foam).forEach(([wallThickness, data]) => {
+    Object.entries(
+      savedForms
+        .filter((form) => form.type === "foam")
+        .reduce(
+          (acc, form) => {
+            const wallKey = `${form.wallThickness} inch wall`;
+            if (!acc[wallKey]) {
+              acc[wallKey] = {
+                roundHoles: {} as Record<string, number>,
+                skewedHoles: {} as Record<string, number>,
+              };
+            }
+            if (form.holeDiameter) {
+              const holeKey = `${form.holeDiameter}"`;
+              const extraKey = `foam-${wallKey}-round-${holeKey}`;
+              const extraCount = extraHoles[extraKey] || 0;
+              acc[wallKey].roundHoles[holeKey] =
+                (acc[wallKey].roundHoles[holeKey] || 0) + 1 + extraCount;
+            }
+            if (form.skewedHoles) {
+              const extraKey = `foam-${wallKey}-skewed-${form.skewedHoles}`;
+              const extraCount = extraHoles[extraKey] || 0;
+              acc[wallKey].skewedHoles[form.skewedHoles] =
+                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) +
+                1 +
+                extraCount;
+            }
+            return acc;
+          },
+          {} as Record<
+            string,
+            {
+              roundHoles: Record<string, number>;
+              skewedHoles: Record<string, number>;
+            }
+          >
+        )
+    ).forEach(([wallThickness, data]) => {
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
         tableData.push({
@@ -429,7 +529,44 @@ export default function TypesFormHolesPage() {
     });
 
     // Add Former data second (without total)
-    Object.entries(summaryData.former).forEach(([wallThickness, data]) => {
+    Object.entries(
+      savedForms
+        .filter((form) => form.type === "former")
+        .reduce(
+          (acc, form) => {
+            const wallKey = `${form.wallThickness} inch wall`;
+            if (!acc[wallKey]) {
+              acc[wallKey] = {
+                roundHoles: {} as Record<string, number>,
+                skewedHoles: {} as Record<string, number>,
+              };
+            }
+            if (form.holeDiameter) {
+              const holeKey = `${form.holeDiameter}"`;
+              const extraKey = `former-${wallKey}-round-${holeKey}`;
+              const extraCount = extraHoles[extraKey] || 0;
+              acc[wallKey].roundHoles[holeKey] =
+                (acc[wallKey].roundHoles[holeKey] || 0) + 1 + extraCount;
+            }
+            if (form.skewedHoles) {
+              const extraKey = `former-${wallKey}-skewed-${form.skewedHoles}`;
+              const extraCount = extraHoles[extraKey] || 0;
+              acc[wallKey].skewedHoles[form.skewedHoles] =
+                (acc[wallKey].skewedHoles[form.skewedHoles] || 0) +
+                1 +
+                extraCount;
+            }
+            return acc;
+          },
+          {} as Record<
+            string,
+            {
+              roundHoles: Record<string, number>;
+              skewedHoles: Record<string, number>;
+            }
+          >
+        )
+    ).forEach(([wallThickness, data]) => {
       // Add round holes
       Object.entries(data.roundHoles).forEach(([size, count]) => {
         tableData.push({
@@ -578,6 +715,142 @@ export default function TypesFormHolesPage() {
     doc.save("hole_order_sheet.pdf");
   };
 
+  const exportSavedFormsToExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(
+      savedForms.map((form) => ({
+        Type: form.type.charAt(0).toUpperCase() + form.type.slice(1),
+        "Wall Thickness": `${form.wallThickness} inches`,
+        "Hole Diameter": form.holeDiameter
+          ? `${form.holeDiameter} inches`
+          : "N/A",
+        "Skewed Holes": form.skewedHoles || "N/A",
+        Description: form.description || "N/A",
+      }))
+    );
+
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 15 }, // Type
+      { wch: 20 }, // Wall Thickness
+      { wch: 20 }, // Hole Diameter
+      { wch: 20 }, // Skewed Holes
+      { wch: 30 }, // Description
+    ];
+
+    // Add styling
+    const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = { c: C, r: R };
+        const cell_ref = XLSX.utils.encode_cell(cell_address);
+        if (!worksheet[cell_ref]) continue;
+
+        // Style header row
+        if (R === 0) {
+          worksheet[cell_ref].s = {
+            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "1E3A8A" } }, // Dark blue
+            alignment: { horizontal: "center" },
+          };
+        }
+        // Style data rows
+        else {
+          worksheet[cell_ref].s = {
+            font: { sz: 11 },
+            alignment: { horizontal: "left" },
+          };
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Saved Forms");
+    XLSX.writeFile(workbook, "saved_forms.xlsx");
+  };
+
+  const exportSavedFormsToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Add header
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Saved Forms", pageWidth / 2, yPos, { align: "center" });
+    yPos += 10;
+
+    // Add date
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Generated on: ${new Date().toLocaleDateString()}`,
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 20;
+
+    // Prepare data for the table
+    const tableData = savedForms.map((form) => [
+      form.type.charAt(0).toUpperCase() + form.type.slice(1),
+      `${form.wallThickness} inches`,
+      form.holeDiameter ? `${form.holeDiameter} inches` : "N/A",
+      form.skewedHoles || "N/A",
+      form.description || "N/A",
+    ]);
+
+    // Create the table
+    autoTable(doc, {
+      startY: yPos,
+      head: [
+        [
+          "Type",
+          "Wall Thickness",
+          "Hole Diameter",
+          "Skewed Holes",
+          "Description",
+        ],
+      ],
+      body: tableData,
+      theme: "grid",
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: 255,
+        fontStyle: "bold",
+        fontSize: 10,
+      },
+      bodyStyles: {
+        fontSize: 10,
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 40 },
+      },
+      styles: {
+        cellPadding: 5,
+        lineColor: [41, 128, 185],
+        lineWidth: 0.5,
+      },
+    });
+
+    doc.save("saved_forms.pdf");
+  };
+
+  const adjustHoleCount = (key: string, amount: number) => {
+    setExtraHoles((prev) => {
+      const newCount = (prev[key] || 0) + amount;
+      // Allow the count to go down to -1 (which means 0 holes total)
+      const newExtraHoles = {
+        ...prev,
+        [key]: newCount < -1 ? -1 : newCount,
+      };
+      return newExtraHoles;
+    });
+  };
+
   const getHoleSummary = () => {
     const summary: Record<
       string,
@@ -624,16 +897,57 @@ export default function TypesFormHolesPage() {
               Lindsay Precast
             </h1>
             <h2 className="text-2xl sm:text-3xl font-semibold text-gray-300">
-              Types Form Holes
+              Form Hole Summary
             </h2>
           </div>
 
           {/* Summary Section */}
           {savedForms.length > 0 && (
             <div className="w-full max-w-5xl bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-700 pb-2">
-                Hole Summary
-              </h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white border-b border-gray-700 pb-2">
+                  Hole Summary
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={exportToExcel}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Export to Excel</span>
+                  </button>
+
+                  <button
+                    onClick={exportToPDF}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Export to PDF</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Job Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -726,15 +1040,41 @@ export default function TypesFormHolesPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {Object.entries(data.roundHoles).map(
-                                ([size, count]) => (
-                                  <div
-                                    key={size}
-                                    className="text-sm text-gray-300"
-                                  >
-                                    {size}: {count}{" "}
-                                    {count === 1 ? "hole" : "holes"}
-                                  </div>
-                                )
+                                ([size, count]) => {
+                                  const key = `foam-${wallThickness}-round-${size}`;
+                                  const totalCount =
+                                    count + (extraHoles[key] || 0);
+                                  return (
+                                    <div
+                                      key={size}
+                                      className="flex items-center gap-2 bg-gray-600 px-3 py-1 rounded"
+                                    >
+                                      <span className="text-sm text-gray-300">
+                                        {size}: {totalCount}{" "}
+                                        {totalCount === 1 ? "hole" : "holes"}
+                                      </span>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, -1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                                          disabled={totalCount <= 0}
+                                        >
+                                          -
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, 1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                }
                               )}
                             </div>
                           </div>
@@ -746,15 +1086,41 @@ export default function TypesFormHolesPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {Object.entries(data.skewedHoles).map(
-                                ([size, count]) => (
-                                  <div
-                                    key={size}
-                                    className="text-sm text-gray-300"
-                                  >
-                                    {size}: {count}{" "}
-                                    {count === 1 ? "hole" : "holes"}
-                                  </div>
-                                )
+                                ([size, count]) => {
+                                  const key = `foam-${wallThickness}-skewed-${size}`;
+                                  const totalCount =
+                                    count + (extraHoles[key] || 0);
+                                  return (
+                                    <div
+                                      key={size}
+                                      className="flex items-center gap-2 bg-gray-600 px-3 py-1 rounded"
+                                    >
+                                      <span className="text-sm text-gray-300">
+                                        {size}: {totalCount}{" "}
+                                        {totalCount === 1 ? "hole" : "holes"}
+                                      </span>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, -1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                                          disabled={totalCount <= 0}
+                                        >
+                                          -
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, 1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                }
                               )}
                             </div>
                           </div>
@@ -814,15 +1180,41 @@ export default function TypesFormHolesPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {Object.entries(data.roundHoles).map(
-                                ([size, count]) => (
-                                  <div
-                                    key={size}
-                                    className="text-sm text-gray-300"
-                                  >
-                                    {size}: {count}{" "}
-                                    {count === 1 ? "hole" : "holes"}
-                                  </div>
-                                )
+                                ([size, count]) => {
+                                  const key = `former-${wallThickness}-round-${size}`;
+                                  const totalCount =
+                                    count + (extraHoles[key] || 0);
+                                  return (
+                                    <div
+                                      key={size}
+                                      className="flex items-center gap-2 bg-gray-600 px-3 py-1 rounded"
+                                    >
+                                      <span className="text-sm text-gray-300">
+                                        {size}: {totalCount}{" "}
+                                        {totalCount === 1 ? "hole" : "holes"}
+                                      </span>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, -1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                                          disabled={totalCount <= 0}
+                                        >
+                                          -
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, 1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                }
                               )}
                             </div>
                           </div>
@@ -834,15 +1226,41 @@ export default function TypesFormHolesPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {Object.entries(data.skewedHoles).map(
-                                ([size, count]) => (
-                                  <div
-                                    key={size}
-                                    className="text-sm text-gray-300"
-                                  >
-                                    {size}: {count}{" "}
-                                    {count === 1 ? "hole" : "holes"}
-                                  </div>
-                                )
+                                ([size, count]) => {
+                                  const key = `former-${wallThickness}-skewed-${size}`;
+                                  const totalCount =
+                                    count + (extraHoles[key] || 0);
+                                  return (
+                                    <div
+                                      key={size}
+                                      className="flex items-center gap-2 bg-gray-600 px-3 py-1 rounded"
+                                    >
+                                      <span className="text-sm text-gray-300">
+                                        {size}: {totalCount}{" "}
+                                        {totalCount === 1 ? "hole" : "holes"}
+                                      </span>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, -1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                                          disabled={totalCount <= 0}
+                                        >
+                                          -
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            adjustHoleCount(key, 1)
+                                          }
+                                          className="w-6 h-6 flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white rounded transition-colors"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                }
                               )}
                             </div>
                           </div>
@@ -860,7 +1278,7 @@ export default function TypesFormHolesPage() {
             {savedForms.length > 0 ? (
               <div className="w-full space-y-4 sm:space-y-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
-                  Saved Forms
+                  Saved Form Holes
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:gap-6">
                   {savedForms.map((form) => (
@@ -915,7 +1333,7 @@ export default function TypesFormHolesPage() {
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-400">
-                  No forms saved yet. Click "Create New Form" to add one.
+                  No Holes saved yet. Click "Create New Form Hole" to add one.
                 </p>
               </div>
             )}
@@ -925,7 +1343,7 @@ export default function TypesFormHolesPage() {
 
       {/* Footer with Create Button and Export Buttons */}
       <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex justify-center space-x-4">
+        <div className="max-w-7xl mx-auto flex justify-center">
           <button
             onClick={() => {
               setFormData({
@@ -952,45 +1370,7 @@ export default function TypesFormHolesPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span>Create New Form Hold</span>
-          </button>
-
-          <button
-            onClick={exportToExcel}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span>Export to Excel</span>
-          </button>
-
-          <button
-            onClick={exportToPDF}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300 flex items-center space-x-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span>Export to PDF</span>
+            <span>Create New Form Hole</span>
           </button>
         </div>
       </footer>
