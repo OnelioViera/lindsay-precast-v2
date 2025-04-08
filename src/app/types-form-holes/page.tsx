@@ -27,6 +27,10 @@ export default function TypesFormHolesPage() {
     holeDiameter: "",
     skewedHoles: "",
   });
+  const [jobInfo, setJobInfo] = useState({
+    jobName: "",
+    jobNumber: "",
+  });
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     isOpen: boolean;
     formId: string | null;
@@ -357,6 +361,25 @@ export default function TypesFormHolesPage() {
     doc.text("Lindsay Precast", pageWidth / 2, yPos, { align: "center" });
     yPos += 10;
 
+    // Add job information if available
+    if (jobInfo.jobName || jobInfo.jobNumber) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      if (jobInfo.jobName) {
+        doc.text(`Job Name: ${jobInfo.jobName}`, pageWidth / 2, yPos, {
+          align: "center",
+        });
+        yPos += 8;
+      }
+      if (jobInfo.jobNumber) {
+        doc.text(`Job Number: ${jobInfo.jobNumber}`, pageWidth / 2, yPos, {
+          align: "center",
+        });
+        yPos += 8;
+      }
+      yPos += 5;
+    }
+
     // Add order form title
     doc.setFontSize(14);
     doc.text("Hole Order Sheet", pageWidth / 2, yPos, { align: "center" });
@@ -456,36 +479,42 @@ export default function TypesFormHolesPage() {
     // Create the table
     autoTable(doc, {
       startY: yPos,
-      head: [["Type", "Wall Thickness", "Hole Type", "Quantity", "Description"]],
+      head: [
+        ["Type", "Wall Thickness", "Hole Type", "Quantity", "Description"],
+      ],
       body: tableData.map((row) => {
         // Check if this is a total row
         const isTotal = row.holeType === "TOTAL";
-        
+
         return [
           {
             content: row.type,
-            styles: isTotal ? {
-              textColor: [0, 0, 0],
-              fontStyle: "bold",
-              fontSize: 14
-            } : undefined
+            styles: isTotal
+              ? {
+                  textColor: [0, 0, 0],
+                  fontStyle: "bold",
+                  fontSize: 14,
+                }
+              : undefined,
           },
           row.wallThickness,
           {
             content: row.holeType,
-            styles: isTotal ? {
-              textColor: [0, 0, 0],
-              fontStyle: "bold",
-              fontSize: 14
-            } : undefined
+            styles: isTotal
+              ? {
+                  textColor: [0, 0, 0],
+                  fontStyle: "bold",
+                  fontSize: 14,
+                }
+              : undefined,
           },
           {
             content: row.quantity,
             styles: {
               textColor: [0, 0, 0],
               fontStyle: "bold",
-              fontSize: isTotal ? 14 : undefined
-            }
+              fontSize: isTotal ? 14 : undefined,
+            },
           },
           row.description,
         ];
@@ -514,13 +543,23 @@ export default function TypesFormHolesPage() {
       },
       didDrawCell: (data: any) => {
         // Style the total rows
-        if (data.row.index === tableData.length - 1 || 
-            (foamTotal > 0 && formerTotal > 0 && data.row.index === tableData.length - 2)) {
+        if (
+          data.row.index === tableData.length - 1 ||
+          (foamTotal > 0 &&
+            formerTotal > 0 &&
+            data.row.index === tableData.length - 2)
+        ) {
           // Set background color
           data.cell.styles.fillColor = [255, 255, 255];
           // Add a border
           data.doc.setDrawColor(41, 128, 185);
-          data.doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, "S");
+          data.doc.rect(
+            data.cell.x,
+            data.cell.y,
+            data.cell.width,
+            data.cell.height,
+            "S"
+          );
         }
       },
     });
@@ -595,6 +634,47 @@ export default function TypesFormHolesPage() {
               <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-700 pb-2">
                 Hole Summary
               </h3>
+
+              {/* Job Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label
+                    htmlFor="jobName"
+                    className="block text-sm font-medium text-gray-300 mb-1"
+                  >
+                    Job Name
+                  </label>
+                  <input
+                    type="text"
+                    id="jobName"
+                    value={jobInfo.jobName}
+                    onChange={(e) =>
+                      setJobInfo({ ...jobInfo, jobName: e.target.value })
+                    }
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter job name"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="jobNumber"
+                    className="block text-sm font-medium text-gray-300 mb-1"
+                  >
+                    Job Number
+                  </label>
+                  <input
+                    type="text"
+                    id="jobNumber"
+                    value={jobInfo.jobNumber}
+                    onChange={(e) =>
+                      setJobInfo({ ...jobInfo, jobNumber: e.target.value })
+                    }
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter job number"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Foam Summary */}
                 <div className="bg-gray-700 rounded-lg p-4">
