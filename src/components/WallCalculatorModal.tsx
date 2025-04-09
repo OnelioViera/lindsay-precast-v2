@@ -279,11 +279,21 @@ export default function WallCalculatorModal({
       20,
       80
     );
-    doc.text(`Quantity: ${dimensions.quantity}`, 20, 90);
+    doc.text(
+      `Wall Thickness: ${dimensions.wallThickness.value} ${dimensions.wallThickness.unit}`,
+      20,
+      90
+    );
+    doc.text(
+      `Lid Thickness: ${dimensions.lidThickness.value} ${dimensions.lidThickness.unit}`,
+      20,
+      100
+    );
+    doc.text(`Quantity: ${dimensions.quantity}`, 20, 110);
 
     // Add results
     doc.setFontSize(14);
-    doc.text("Results:", 20, 110);
+    doc.text("Results:", 20, 130);
 
     // Create table data
     const tableData = [
@@ -314,7 +324,7 @@ export default function WallCalculatorModal({
 
     // Add table
     autoTable(doc, {
-      startY: 120,
+      startY: 140,
       head: [["Measurement", "Value"]],
       body: tableData,
       theme: "grid",
