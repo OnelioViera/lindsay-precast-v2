@@ -7,6 +7,7 @@ import UploadModal from "@/components/UploadModal";
 import VolumeCalculatorModal from "@/components/VolumeCalculatorModal";
 import ConcreteVolumeCalculatorModal from "@/components/ConcreteVolumeCalculatorModal";
 import WallCalculatorModal from "@/components/WallCalculatorModal";
+import LinkUploadModal from "@/components/LinkUploadModal";
 
 interface PDFFile {
   id: string;
@@ -14,11 +15,13 @@ interface PDFFile {
   description: string;
   url: string;
   date: string;
+  type: "pdf" | "link";
 }
 
 export default function EngineeringPage() {
   const [pdfFiles, setPdfFiles] = useState<PDFFile[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isVolumeCalculatorModalOpen, setIsVolumeCalculatorModalOpen] =
     useState(false);
   const [isConcreteCalculatorModalOpen, setIsConcreteCalculatorModalOpen] =
@@ -63,12 +66,27 @@ export default function EngineeringPage() {
         description: description,
         url: e.target?.result as string,
         date: new Date().toISOString(),
+        type: "pdf",
       };
       setPdfFiles((prevFiles) => [...prevFiles, newFile]);
       setIsUploadModalOpen(false);
       toast.success("File uploaded successfully!");
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleLinkUpload = (url: string, name: string, description: string) => {
+    const newLink: PDFFile = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: name,
+      description: description,
+      url: url,
+      date: new Date().toISOString(),
+      type: "link",
+    };
+    setPdfFiles((prevFiles) => [...prevFiles, newLink]);
+    setIsLinkModalOpen(false);
+    toast.success("Link added successfully!");
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -193,65 +211,114 @@ export default function EngineeringPage() {
             {/* PDF Storage Section */}
             <div className="bg-gray-800 rounded-xl p-6 shadow-lg w-full max-w-6xl mx-auto">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-white">PDF Storage</h2>
-                <button
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
+                <h2 className="text-xl font-bold text-white">
+                  Document Storage
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                    />
-                  </svg>
-                  Upload PDF
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                      />
+                    </svg>
+                    Upload PDF
+                  </button>
+                  <button
+                    onClick={() => setIsLinkModalOpen(true)}
+                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+                      />
+                    </svg>
+                    Add Link
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3">
-                {pdfFiles.map((pdf) => (
+                {pdfFiles.map((item) => (
                   <div
-                    key={pdf.id}
+                    key={item.id}
                     className="bg-gray-700 rounded-lg p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0"
                   >
                     <div className="flex-1">
                       <h3 className="text-base font-semibold text-white">
-                        {pdf.name}
+                        {item.name}
                       </h3>
-                      <p className="text-sm text-gray-300">{pdf.description}</p>
+                      <p className="text-sm text-gray-300">
+                        {item.description}
+                      </p>
                       <p className="text-xs text-gray-400">
-                        Uploaded: {new Date(pdf.date).toLocaleDateString()}
+                        Added: {new Date(item.date).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex space-x-2 w-full sm:w-auto">
-                      <button
-                        onClick={() => handleDownload(pdf)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
+                      {item.type === "pdf" ? (
+                        <button
+                          onClick={() => handleDownload(item)}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>Download</span>
-                      </button>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Download
+                        </button>
+                      ) : (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 3 3 0 00-3 3 2 2 0 01-2.828-2.828 3 3 0 000-3z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Open Link
+                        </a>
+                      )}
                       <button
-                        onClick={() => handleDelete(pdf.id, pdf.name)}
+                        onClick={() => handleDelete(item.id, item.name)}
                         className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
                       >
                         <svg
@@ -266,7 +333,7 @@ export default function EngineeringPage() {
                             clipRule="evenodd"
                           />
                         </svg>
-                        <span>Delete</span>
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -282,6 +349,12 @@ export default function EngineeringPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleFileUpload}
+      />
+
+      <LinkUploadModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        onUpload={handleLinkUpload}
       />
 
       {/* Volume Calculator Modal */}

@@ -245,7 +245,7 @@ export default function WallCalculatorModal({
 
     // Add title
     doc.setFontSize(20);
-    doc.text("Wall Calculator Results", 20, 20);
+    doc.text("Base and Wall Results", 20, 20);
 
     // Add calculation details
     doc.setFontSize(12);
