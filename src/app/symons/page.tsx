@@ -7,6 +7,8 @@ import autoTable from "jspdf-autotable";
 import type { jsPDF as JSPDF } from "jspdf";
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 interface SymonsData {
   id: string;
@@ -131,6 +133,7 @@ export default function SymonsPage() {
         prevSymons.filter((symon) => symon.id !== deleteConfirmModal.symonId)
       );
       setDeleteConfirmModal({ isOpen: false, symonId: null });
+      toast.success("Symons entry deleted successfully!");
     }
   };
 
@@ -174,6 +177,7 @@ export default function SymonsPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center p-4 transition-colors duration-300">
+      <Toaster position="top-right" />
       <Navbar />
       <main className="w-full max-w-[1920px] mx-auto px-8 sm:px-12 lg:px-16 pb-24 mt-16">
         <div className="flex flex-col items-center space-y-6 sm:space-y-8">

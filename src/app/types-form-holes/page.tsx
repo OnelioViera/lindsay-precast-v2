@@ -1299,11 +1299,12 @@ export default function TypesFormHolesPage() {
                               </span>{" "}
                               {form.wallThickness} inches
                             </p>
-                            <p className="text-gray-300">
-                              <span className="font-medium">
-                                Hole Diameter:
-                              </span>{" "}
-                              {form.holeDiameter} inches
+                            <p className="text-sm text-gray-300">
+                              {form.holeDiameter
+                                ? `Hole Diameter: ${form.holeDiameter} inches`
+                                : form.skewedHoles
+                                  ? `Skewed Holes: ${form.skewedHoles} inches`
+                                  : "No hole size specified"}
                             </p>
                           </div>
                         </div>
