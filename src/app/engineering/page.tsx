@@ -452,9 +452,11 @@ export default function EngineeringPage() {
                     </h2>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-white italic">
-                      Click on a PDF file to view its contents
-                    </p>
+                    {pdfFiles.length > 0 && (
+                      <p className="text-sm text-white italic">
+                        Click on a PDF file to view its contents
+                      </p>
+                    )}
                     <div className="flex items-center gap-2">
                       {pdfFiles.filter(
                         (file) => file?.url && !file.url.startsWith("http")
