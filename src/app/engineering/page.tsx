@@ -32,7 +32,9 @@ interface PDFFile {
 }
 
 // Set up the worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+if (typeof window !== "undefined") {
+  pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+}
 
 export default function EngineeringPage() {
   const [pdfFiles, setPdfFiles] = useState<PDFFile[]>([]);
@@ -91,25 +93,33 @@ export default function EngineeringPage() {
   }, [pdfFiles]);
 
   const handleFileUpload = (file: File, description: string) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64Url = reader.result as string;
-      // Check if the file is a PDF
-      if (file.type === "application/pdf") {
-        const newFile: PDFFile = {
-          id: Date.now().toString(),
-          name: file.name,
-          description,
-          url: base64Url,
-          type: "file",
-        };
-        setPdfFiles((prevFiles) => [...prevFiles, newFile]);
-        toast.success("PDF uploaded successfully!");
-      } else {
-        toast.error("Please upload only PDF files");
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Url = reader.result as string;
+        // Check if the file is a PDF
+        if (file.type === "application/pdf") {
+          const newFile: PDFFile = {
+            id: Date.now().toString(),
+            name: file.name,
+            description,
+            url: base64Url,
+            type: "file",
+          };
+          setPdfFiles((prevFiles) => [...prevFiles, newFile]);
+          toast.success("PDF uploaded successfully!");
+        } else {
+          toast.error("Please upload only PDF files");
+        }
+      };
+      reader.onerror = () => {
+        toast.error("Error reading file. Please try again.");
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file. Please try again.");
+    }
   };
 
   const handleLinkUpload = (url: string, name: string, description: string) => {
@@ -180,12 +190,17 @@ export default function EngineeringPage() {
   };
 
   const handlePreview = (file: PDFFile) => {
-    if (file.url.startsWith("http")) {
-      window.open(file.url, "_blank");
-    } else {
-      setPreviewFile(file);
-      setCurrentPreviewPage(0);
-      setIsPreviewModalOpen(true);
+    try {
+      if (file.url.startsWith("http")) {
+        window.open(file.url, "_blank");
+      } else {
+        setPreviewFile(file);
+        setCurrentPreviewPage(0);
+        setIsPreviewModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error previewing file:", error);
+      toast.error("Failed to preview file. Please try again.");
     }
   };
 
