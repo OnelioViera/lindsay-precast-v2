@@ -24,6 +24,9 @@ interface Dimensions {
   width: Dimension;
   depth: Dimension;
   quantity: string;
+  holes: {
+    diameter: Dimension;
+  }[];
 }
 
 interface CalculationResult {
@@ -45,6 +48,11 @@ export default function ConcreteVolumeCalculatorModal({
     width: { value: "0", unit: "inches" },
     depth: { value: "0", unit: "inches" },
     quantity: "1",
+    holes: [
+      {
+        diameter: { value: "0", unit: "inches" },
+      },
+    ],
   });
   const [result, setResult] = useState<CalculationResult | null>(null);
 
@@ -74,6 +82,21 @@ export default function ConcreteVolumeCalculatorModal({
       const widthInFeet = dimensions.width.unit === "inches" ? w / 12 : w;
       volumeCubicFeet = lengthInFeet * widthInFeet * depthInFeet * q;
     }
+
+    // Calculate hole volumes and subtract from total
+    let totalHoleVolume = 0;
+    dimensions.holes.forEach((hole) => {
+      const holeDiameter = parseFloat(hole.diameter.value);
+      if (!isNaN(holeDiameter) && holeDiameter > 0) {
+        const holeDiameterInFeet =
+          hole.diameter.unit === "inches" ? holeDiameter / 12 : holeDiameter;
+        const holeRadius = holeDiameterInFeet / 2;
+        const holeVolume = Math.PI * holeRadius * holeRadius * depthInFeet * q;
+        totalHoleVolume += holeVolume;
+      }
+    });
+
+    volumeCubicFeet -= totalHoleVolume;
 
     // Convert to other volume units
     const volumeCubicYards = volumeCubicFeet / 27;
@@ -167,6 +190,11 @@ export default function ConcreteVolumeCalculatorModal({
       width: { value: "0", unit: "inches" },
       depth: { value: "0", unit: "inches" },
       quantity: "1",
+      holes: [
+        {
+          diameter: { value: "0", unit: "inches" },
+        },
+      ],
     });
     setResult(null);
   };
@@ -247,6 +275,97 @@ export default function ConcreteVolumeCalculatorModal({
 
     // Save the PDF
     doc.save("concrete_calculator_results.pdf");
+  };
+
+  const handleHoleInputChange = (
+    index: number,
+    field: "diameter",
+    value: string
+  ) => {
+    setDimensions((prev) => {
+      const newHoles = [...prev.holes];
+      newHoles[index] = {
+        ...newHoles[index],
+        [field]: { ...newHoles[index][field], value },
+      };
+      return { ...prev, holes: newHoles };
+    });
+    setResult(null);
+  };
+
+  const handleHoleUnitChange = (
+    index: number,
+    field: "diameter",
+    unit: Unit
+  ) => {
+    setDimensions((prev) => {
+      const newHoles = [...prev.holes];
+      newHoles[index] = {
+        ...newHoles[index],
+        [field]: { ...newHoles[index][field], unit },
+      };
+      return { ...prev, holes: newHoles };
+    });
+    setResult(null);
+  };
+
+  const handleHoleFocus = (index: number, field: "diameter") => {
+    setDimensions((prev) => {
+      const newHoles = [...prev.holes];
+      if (newHoles[index][field].value === "0") {
+        newHoles[index] = {
+          ...newHoles[index],
+          [field]: { ...newHoles[index][field], value: "" },
+        };
+      }
+      return { ...prev, holes: newHoles };
+    });
+  };
+
+  const handleHoleBlur = (index: number, field: "diameter") => {
+    setDimensions((prev) => {
+      const newHoles = [...prev.holes];
+      if (newHoles[index][field].value === "") {
+        newHoles[index] = {
+          ...newHoles[index],
+          [field]: { ...newHoles[index][field], value: "0" },
+        };
+      }
+      return { ...prev, holes: newHoles };
+    });
+  };
+
+  const addHole = () => {
+    if (dimensions.holes.length < 3) {
+      setDimensions((prev) => ({
+        ...prev,
+        holes: [
+          ...prev.holes,
+          {
+            diameter: { value: "0", unit: "inches" },
+          },
+        ],
+      }));
+    }
+  };
+
+  const removeHole = (index: number) => {
+    setDimensions((prevDimensions) => {
+      const newHoles = prevDimensions.holes.filter(
+        (_, i: number) => i !== index
+      );
+      // If we're removing the last hole, add a new empty one
+      if (newHoles.length === 0) {
+        newHoles.push({
+          diameter: { value: "0", unit: "inches" },
+        });
+      }
+      return {
+        ...prevDimensions,
+        holes: newHoles,
+      };
+    });
+    setResult(null);
   };
 
   return (
@@ -381,7 +500,7 @@ export default function ConcreteVolumeCalculatorModal({
                                 }
                                 onFocus={() => handleFocus("diameter")}
                                 onBlur={() => handleBlur("diameter")}
-                                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
                                 placeholder="0"
                               />
                               <div className="flex">
@@ -431,7 +550,7 @@ export default function ConcreteVolumeCalculatorModal({
                                   }
                                   onFocus={() => handleFocus("length")}
                                   onBlur={() => handleBlur("length")}
-                                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
                                   placeholder="0"
                                 />
                                 <div className="flex">
@@ -480,7 +599,7 @@ export default function ConcreteVolumeCalculatorModal({
                                   }
                                   onFocus={() => handleFocus("width")}
                                   onBlur={() => handleBlur("width")}
-                                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
                                   placeholder="0"
                                 />
                                 <div className="flex">
@@ -531,7 +650,7 @@ export default function ConcreteVolumeCalculatorModal({
                               }
                               onFocus={() => handleFocus("depth")}
                               onBlur={() => handleBlur("depth")}
-                              className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
                               placeholder="0"
                             />
                             <div className="flex">
@@ -563,6 +682,103 @@ export default function ConcreteVolumeCalculatorModal({
                           </div>
                         </div>
 
+                        {/* Holes Section */}
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="block text-sm font-medium text-gray-300">
+                              Holes (Depth matches main shape)
+                            </label>
+                            {dimensions.holes.length < 3 && (
+                              <button
+                                onClick={addHole}
+                                className="text-sm text-blue-400 hover:text-blue-300"
+                              >
+                                + Add Hole
+                              </button>
+                            )}
+                          </div>
+
+                          {dimensions.holes.map((hole, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-700 rounded-lg p-4 space-y-4"
+                            >
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-sm font-medium text-gray-300">
+                                  Hole {index + 1}
+                                </h4>
+                                <button
+                                  onClick={() => removeHole(index)}
+                                  className="text-red-400 hover:text-red-300"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Diameter
+                                </label>
+                                <div className="flex rounded-md shadow-sm">
+                                  <input
+                                    type="number"
+                                    value={hole.diameter.value}
+                                    onChange={(e) =>
+                                      handleHoleInputChange(
+                                        index,
+                                        "diameter",
+                                        e.target.value
+                                      )
+                                    }
+                                    onFocus={() =>
+                                      handleHoleFocus(index, "diameter")
+                                    }
+                                    onBlur={() =>
+                                      handleHoleBlur(index, "diameter")
+                                    }
+                                    className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
+                                    placeholder="0"
+                                  />
+                                  <div className="flex">
+                                    <button
+                                      onClick={() =>
+                                        handleHoleUnitChange(
+                                          index,
+                                          "diameter",
+                                          "inches"
+                                        )
+                                      }
+                                      className={`px-4 py-3 border-l border-gray-600 ${
+                                        hole.diameter.unit === "inches"
+                                          ? "bg-blue-600 text-white"
+                                          : "bg-gray-700 text-gray-300"
+                                      }`}
+                                    >
+                                      in
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleHoleUnitChange(
+                                          index,
+                                          "diameter",
+                                          "feet"
+                                        )
+                                      }
+                                      className={`px-4 py-3 border-l border-gray-600 ${
+                                        hole.diameter.unit === "feet"
+                                          ? "bg-blue-600 text-white"
+                                          : "bg-gray-700 text-gray-300"
+                                      }`}
+                                    >
+                                      ft
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
                         <div>
                           <label
                             htmlFor="quantity"
@@ -579,7 +795,7 @@ export default function ConcreteVolumeCalculatorModal({
                             }
                             onFocus={() => handleFocus("quantity")}
                             onBlur={() => handleBlur("quantity")}
-                            className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="block w-full rounded-md border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-scrollbar]:hidden"
                             placeholder="1"
                           />
                         </div>
